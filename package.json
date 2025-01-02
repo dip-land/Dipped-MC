@@ -1,12 +1,13 @@
 {
   "name": "dipped_mc",
   "productName": "Dipped MC",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "My Electron application description",
   "author": {
-    "name": "Sebastian Whisner",
+    "name": "Sebastian W",
     "email": "82669765+dip-land@users.noreply.github.com"
   },
+  "repository": "github:dip-land/Dipped-MC",
   "packagerConfig": {
     "icon": "./src/static/favicon.ico"
   },
@@ -53,6 +54,7 @@
     "@types/xml2js": "^0.4.14",
     "axios": "^1.7.9",
     "decompress": "^4.2.1",
+    "dotenv": "^16.4.7",
     "electron-squirrel-startup": "^1.0.1",
     "minecraft-launcher-core": "^3.18.2",
     "mkdirp": "^3.0.1",

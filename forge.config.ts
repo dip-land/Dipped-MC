@@ -11,6 +11,8 @@ import { FuseV1Options, FuseVersion } from '@electron/fuses';
 import { mainConfig } from './webpack.main.config';
 import { rendererConfig } from './webpack.renderer.config';
 
+import 'dotenv/config';
+
 const config: ForgeConfig = {
     packagerConfig: {
         asar: true,
@@ -26,6 +28,7 @@ const config: ForgeConfig = {
                 },
                 prerelease: false,
                 draft: true,
+                authToken: process.env.GITHUB_TOKEN,
             },
         },
     ],
