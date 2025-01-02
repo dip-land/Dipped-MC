@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { app, BrowserWindow, ipcMain, dialog } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, autoUpdater } from 'electron';
 import fs from 'node:fs';
 import path from 'node:path';
 import yauzl from 'yauzl';
@@ -8,8 +8,11 @@ import { fabric, forge } from './static/tomate-loaders/dist/index';
 import { Client, Authenticator } from 'minecraft-launcher-core';
 import os from 'os';
 
-import { updateElectronApp } from 'update-electron-app';
-updateElectronApp();
+const server = 'https://update.electronjs.org';
+const feed = `${server}/dip-land/Dipped-MC/${process.platform}-${process.arch}/${app.getVersion()}`;
+console.log(feed);
+autoUpdater.setFeedURL({ url: feed });
+autoUpdater.checkForUpdates();
 
 const launcher = new Client();
 
@@ -439,3 +442,7 @@ function unzip(zipPath: string, unzipToDir: string) {
         }
     });
 }
+
+setInterval(() => {
+    autoUpdater.checkForUpdates();
+}, 10 * 60 * 1000);

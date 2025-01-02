@@ -27,7 +27,6 @@ const config: ForgeConfig = {
                     name: 'Dipped-MC',
                 },
                 prerelease: false,
-                draft: true,
                 authToken: process.env.GITHUB_TOKEN,
             },
         },
