@@ -1,7 +1,7 @@
 {
   "name": "dipped_mc",
   "productName": "Dipped MC",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "My Electron application description",
   "author": {
     "name": "Sebastian Whisner",
@@ -59,6 +59,7 @@
     "msmc": "^5.0.5",
     "tomate-loaders": "^2.0.2",
     "tomate-mods": "github:doublekekse/tomate-mods",
+    "update-electron-app": "^3.1.0",
     "xml2js": "^0.6.2",
     "yauzl": "^3.2.0"
   }

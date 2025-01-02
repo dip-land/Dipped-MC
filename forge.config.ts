@@ -21,8 +21,8 @@ const config: ForgeConfig = {
             name: '@electron-forge/publisher-github',
             config: {
                 repository: {
-                    owner: 'github-user-name',
-                    name: 'github-repo-name',
+                    owner: 'dip-land',
+                    name: 'Dipped-MC',
                 },
                 prerelease: false,
                 draft: true,

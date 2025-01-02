@@ -8,6 +8,9 @@ import { fabric, forge } from './static/tomate-loaders/dist/index';
 import { Client, Authenticator } from 'minecraft-launcher-core';
 import os from 'os';
 
+import { updateElectronApp } from 'update-electron-app';
+updateElectronApp();
+
 const launcher = new Client();
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
