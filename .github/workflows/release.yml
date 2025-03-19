@@ -11,15 +11,14 @@ jobs:
     - name: Setup Node.js environment
       uses: actions/setup-node@v4.3.0
       with:
-          node-version: '>=23.9.0'
+          node-version: '23.9.0'
     - run: npm install
-    - run: echo "VERSION=$(npm pkg get version)" >> $GITHUB_OUTPUT
-      id: version
+    - run: echo ("VERSION=" + (npm pkg get version)) >> $env:GITHUB_ENV
     - run: npm run make
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
       with:
         file: out/make/squirrel.windows/x64/*
-        tag: v.test
+        tag: v.${{ env.VERSION }}
         overwrite: true
         file_glob: true
