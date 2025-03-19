@@ -5,7 +5,7 @@ on:
     - master
 jobs:
   run:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
     - uses: actions/checkout@v4
     - name: Setup Node.js environment
@@ -15,11 +15,11 @@ jobs:
     - run: npm install
     - run: echo "VERSION=$(npm pkg get version)" >> $GITHUB_OUTPUT
       id: version
-    - run: npm run make -- --platform win32
+    - run: npm run make
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
       with:
         file: out/make/squirrel.windows/x64/*
-        tag: v.${{ steps.version.outputs.VERSION }}
+        tag: v.test
         overwrite: true
         file_glob: true
