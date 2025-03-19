@@ -13,15 +13,13 @@ jobs:
       with:
           node-version: '>=23.9.0'
     - run: npm install
+    - run: echo "npm pkg get version" >> $GITHUB_ENV
     - run: npm run make
-    - name: get-npm-version
-      id: package-version
-      uses: martinbeentjes/npm-get-version-action@v1.3.1
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
       with:
-        repo_token: v.${{ secrets.GITHUB_TOKEN }}
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: out/make/squirrel.windows/x64/* # the folder which has all the files that you want to release
-        tag: ${{ steps.package-version.outputs.current-version }}
+        tag: ${{  }}
         overwrite: true
         file_glob: true
