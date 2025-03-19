@@ -15,7 +15,7 @@ jobs:
     - run: npm install
     - run: echo "VERSION=$(npm pkg get version)" >> $GITHUB_OUTPUT
       id: version
-    - run: npm run make
+    - run: npm run make -- --platform win32
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
       with:
