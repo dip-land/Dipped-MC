@@ -13,7 +13,7 @@ jobs:
       with:
           node-version: '23.9.0'
     - run: npm install
-    - run: echo ("VERSION=" + (npm pkg get version)) >> $env:GITHUB_ENV
+    - run: echo ("VERSION=" + (node -p "require('./package.json').version")) >> $env:GITHUB_ENV
     - run: npm run make
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
