@@ -19,6 +19,6 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         file: out/make/squirrel.windows/x64/*
-        tag: v.${{ env.VERSION }}
+        tag: v${{ env.VERSION }}
         overwrite: true
         file_glob: true
