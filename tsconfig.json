@@ -1,18 +1,15 @@
 {
     "compilerOptions": {
-        "strict": false,
-        "target": "ES2017",
-        "allowJs": true,
+        "target": "ESNext",
         "module": "commonjs",
+        "allowJs": true,
+        "skipLibCheck": true,
         "esModuleInterop": true,
-        "noImplicitAny": true,
+        "removeComments": true,
+        "sourceMap": true,
         "baseUrl": ".",
         "outDir": "dist",
         "moduleResolution": "node",
-        "resolveJsonModule": true,
-        "paths": {
-            "*": ["node_modules/*"]
-        }
-    },
-    "include": ["src/**/*"]
+        "resolveJsonModule": true
+    }
 }

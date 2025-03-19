@@ -1,12 +1,10 @@
-import type { ModLoader } from 'tomate-mods';
-import { type LaunchConfig } from '.';
-export declare const id = "fabric";
+import type { LaunchConfig } from '..';
+export declare const id = 'quilt';
 export type Loader = {
     separator: string;
     build: number;
     maven: string;
     version: string;
-    stable: boolean;
 };
 export declare function getLoaders(): Promise<Loader[]>;
 export declare function getProfile(gameVersion: string, loaderVersion: string): Promise<any>;
@@ -24,4 +22,9 @@ export declare function getMCLCLaunchConfig(config: LaunchConfig): Promise<{
         custom: string;
     };
 }>;
-export declare const totalModsModLoader: ModLoader;
+export declare function listSupportedVersions(): Promise<
+    {
+        version: string;
+        stable: boolean;
+    }[]
+>;

@@ -1,6 +1,5 @@
-import type { ModLoader } from 'tomate-mods';
 import type { LaunchConfig } from '..';
-export declare const id = "neoforge";
+export declare const id = 'neoforge';
 export declare function downloadNeoForge(neoForgeFilePath: string, gameVersion: string): Promise<void>;
 export declare function getMavenMetadata(): Promise<any>;
 /**
@@ -19,8 +18,9 @@ export declare function getMCLCLaunchConfig(config: LaunchConfig): Promise<{
     };
     forge: string;
 }>;
-export declare function listSupportedVersions(): Promise<{
-    version: string;
-    stable: boolean;
-}[]>;
-export declare const tomateModsModLoader: ModLoader;
+export declare function listSupportedVersions(): Promise<
+    {
+        version: string;
+        stable: boolean;
+    }[]
+>;

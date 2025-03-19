@@ -1,9 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.liner = void 0;
-function liner(lineConsumer) {
+type LineConsumer = (line: string) => void;
+export function liner(lineConsumer: LineConsumer) {
     let buffer = ''; // TODO Is there a StringBuilder in js?
-    return (data) => {
+    return (data: any) => {
         buffer += data;
         const lines = buffer.split('\n');
         buffer = lines.pop() ?? '';
@@ -12,5 +10,4 @@ function liner(lineConsumer) {
         }
     };
 }
-exports.liner = liner;
-//# sourceMappingURL=liner.js.map
+export {};

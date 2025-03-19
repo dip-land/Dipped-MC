@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="stylesheet" type="text/css" href="/styles/index.css" />
+        <!-- https: //developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+        <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://dipped.dev https://*.dipped.dev" />  -->
+    </head>
+
+    <body>
+        <button onclick="window.location.reload()" style="position: absolute; inset: 0 auto auto 0; z-index: 99999;">Refresh</button>
+        <nav>
+            <a id="logo" title="dipped.dev">
+                <img src="/favicon_x256.png"></img>
+            </a>
+            <!-- <div id="skip-navigation"></div> -->
+            <div id="center">
+                <button tabindex="-1" id="modpacks_button" class="active">Modpacks</button>
+                <button tabindex="-1" id="settings_button">Settings</button>
+            </div>
+            <div id="end">
+                <div id="loginMode" class="login hidden">Offline Mode</div>
+                <button id="loginButton" class="login" target="popup" onclick="window.dmc.login()"> Login </button>
+                <div id="user" class="user hidden">
+                    <canvas id="userAvatar" alt="User Avatar" width="25px" height="25px"></canvas>
+                    <span id="username"></span>
+                    <svg id="caret" class="rotated" width="24" height="24" viewbox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7 14.5l5-5 5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                </div>
+                <div class="popout hidden" id="nav_popout">
+                    <!-- <a href="/dashboard/me/">Profile</a> -->
+                    <div id="logout" onclick="window.dmc.logout()">Logout</div>
+                </div>
+            </div>
+        </nav>
+        <div id="debug" class="hidden">
+            <div id="dev_tools" class="hidden"><button tabindex="-1" id="delete_config">Delete all configs</button></div>
+            <div id="debugConfig"></div>
+            <button id="folder" onclick="window.dmc.selectFolder('pack')">Pick Folder</button>
+        </div>
+        <div id="offlineWarning" class="hidden">
+            <h2>Offline Warning</h2>
+            <p>It appears you can't reach <button onclick="window.dmc.openURL('https:\/\/dipped.dev/')">https://dipped.dev</button>, you either are not connected to the internet or the site is down.</p>
+            <button onclick="window.dmc.reload()">Reload App</button>
+            <button onclick="this.parentNode.classList.add('hidden')">Hide Warning</button>
+        </div>
+        <div id="modpacks" class="">
+            <div id="filter">
+                <label for="sort">Sort: </label>
+                <select name="sort" id="sort">
+                    <option value="installed" selected>Installed</option>
+                    <option value="uninstalled">Not Installed</option>
+                    <option value="new">Newest</option>
+                    <option value="old">Oldest</option>
+                    <option value="asc">A-Z</option>
+                    <option value="desc">Z-A</option>
+                </select>
+                <label for="status">filter: </label>
+                <select name="status" id="status">
+                    <option value="all" selected>All</option>
+                    <option value="installed">Installed</option>
+                    <option value="uninstalled">Not Installed</option>
+                </select>
+            </div>
+            <div id="servers"></div>
+            <div id="context" class="popout hidden">
+                <button>Play</button>
+                <button>Update</button>
+                <button>Install</button>
+                <button>Uninstall</button>
+                <button>Download World</button>
+                <hr>
+                <button>Open Folder</button>
+                <button>Change Settings</button>
+                <hr>
+                <button>Visit Website</button>
+                <button>Curseforge</button>
+                <button>Modrinth</button>
+            </div>
+        </div>
+        <div id="settings">
+            <aside></aside>
+            <div></div>
+        </div>
+        <div id="installSettings" class="hidden">
+            <div class="content">
+                <h1>Install Settings</h1>
+                <label for="installLocation">Install Location</label><br>
+                <input id="installLocation" type="text" name="installLocation" disabled>
+                <button id="changeLocation">Change</button>
+                <br>
+                <label for="ram">Pack Ram <i>(GB)</i></label>
+                <br>
+                <input id="packRam" type="number" name="ram" min="4" max="16">
+                <div class="buttons">
+                    <button id="installPack">Install</button>
+                    <button id="cancelPackInstall">Cancel</button>
+                </div>
+            </div>
+        </div>
+        <div id="uninstallConfirmation" class="hidden">
+            <div class="content center">
+                <h1>Uninstall Pack</h1>
+                <h3 style="margin: 0;">Are you sure you want to uninstall <b style="text-decoration: underline;"></b>?</h3>
+                <span>Uninstalling deletes everything <b style="text-decoration: underline; font-weight: 400;">except</b> your worlds and settings unless the checkbox below is checked.</span>
+                <div style="margin: 1rem 0; display: flex; gap: 0.5rem; align-items: center;">
+                    <input id="deleteWorldsAndSettings" type="checkbox" name="deleteWorldsAndSettings">
+                    <label for="deleteWorldsAndSettings">Delete worlds and settings for this pack</label>
+                </div>
+                <div class="buttons">
+                    <button id="uninstallPack">Uninstall</button>
+                    <button id="cancelPackUninstall">Cancel</button>
+                </div>
+            </div>
+        </div>
+        <div id="notifications"></div>
+
+        <script src="/scripts/main.js"></script>
+    </body>
+
+</html>
