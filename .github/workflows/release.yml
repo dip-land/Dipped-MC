@@ -13,15 +13,13 @@ jobs:
       with:
           node-version: '>=23.9.0'
     - run: npm install
-    - run: echo "VERSION=$(npm pkg get version)" >> $GITHUB_ENV
-    - run: echo $VERSION
+    - run: echo "VERSION=$(npm pkg get version)" >> $GITHUB_OUTPUT
+      id: version
     - run: npm run make
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
       with:
-        file: out/make/squirrel.windows/x64/* # the folder which has all the files that you want to release
-        release_name: v.${{ env.VERSION }}
-        tag: v.${{ env.VERSION }}
+        file: out/make/squirrel.windows/x64/*
+        tag: v.${{ steps.version.outputs.VERSION }}
         overwrite: true
         file_glob: true
-        repo_name: "master"
