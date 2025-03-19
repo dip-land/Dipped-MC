@@ -1,13 +1,13 @@
 {
   "name": "dipped_mc",
   "productName": "Dipped MC",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "A Minecraft Launcher",
   "main": ".vite/build/index.js",
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
-    "make": "electron-forge make",
+    "make": "sass ./public/styles --no-source-map & electron-forge make",
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts,.tsx ."
   },
@@ -34,6 +34,7 @@
     "electron": "35.0.1",
     "eslint": "^8.57.1",
     "eslint-plugin-import": "^2.31.0",
+    "sass": "^1.86.0",
     "ts-node": "^10.9.2",
     "typescript": "~4.5.4",
     "vite": "^5.4.14"
