@@ -296,7 +296,7 @@ nav {
     margin: 0 auto 1rem;
     width: min(100%, 1340px);
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 1rem;
     box-sizing: border-box;
     text-shadow: 0.5px 0.5px 0.5px black;
@@ -698,20 +698,8 @@ nav {
     }
 }
 
-@media screen and (max-width: 1150px) {
-    #servers {
-        grid-template-columns: 1fr 1fr 1fr;
-    }
-}
-
-@media screen and (max-width: 850px) {
+@media screen and (max-width: 1050px) {
     #servers {
         grid-template-columns: 1fr 1fr;
-    }
-}
-
-@media screen and (max-width: 550px) {
-    #servers {
-        grid-template-columns: 1fr;
     }
 }

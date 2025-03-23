@@ -6,6 +6,7 @@ import os from 'os';
 // eslint-disable-next-line import/no-unresolved
 import { Auth, tokenUtils } from 'msmc';
 import type { MclcUser } from 'msmc/types/types';
+import { Config, LocalPack, Pack, WebPack } from './types';
 
 export const apiServer = 'https://dipped.dev/api';
 const updateServer = 'https://dipped-mc-updater.vercel.app';
@@ -157,7 +158,7 @@ app.on('activate', () => {
     }
 });
 
-import deleteConfig from './events/deleteConfig';
+import deleteConfigEvent from './events/deleteConfig';
 import editConfigEvent from './events/editConfig';
 import fetchPacksEvent from './events/fetchPacks';
 import getConfigEvent from './events/getConfig';
@@ -176,11 +177,10 @@ import pathJoinEvent from './events/pathJoin';
 import playPackEvent from './events/playPack';
 import reloadEvent from './events/reload';
 import uninstallPackEvent from './events/uninstallPack';
-import { Config, LocalPack, Pack, WebPack } from './types';
 
 app.on('ready', async () => {
     createWindow();
-    ipcMain.on('delete-config', deleteConfig.fn);
+    ipcMain.on('delete-config', deleteConfigEvent.fn);
     ipcMain.on('edit-config', editConfigEvent.fn);
     ipcMain.on('fetch-packs', fetchPacksEvent.fn);
     ipcMain.on('get-config', getConfigEvent.fn);

@@ -1,77 +1,38 @@
 // See the Electron documentation for details on how to use preload scripts:
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 import { contextBridge, ipcRenderer } from 'electron';
-import { Config, LocalPack, Pack } from './index';
+import { Config, Pack } from './types';
 
 contextBridge.exposeInMainWorld('dmc', {
-    loadIcon: (id: string) => ipcRenderer.sendSync('load-icon', id),
-    pathJoin: (...args: string[]) => ipcRenderer.sendSync('load-icon', ...args),
-    getConfig: () => ipcRenderer.sendSync('get-config') as Config,
-    editConfig: (newConfig: Config) => ipcRenderer.sendSync('edit-config', newConfig) as Config,
     deleteConfig: () => ipcRenderer.sendSync('delete-config'),
-    reload: () => ipcRenderer.sendSync('reload'),
+    editConfig: (newConfig: Config) => ipcRenderer.sendSync('edit-config', newConfig) as Config,
+    fetchPacks: () => ipcRenderer.sendSync('fetch-packs'),
+    getConfig: () => ipcRenderer.sendSync('get-config') as Config,
+    getInstallingPacks: () => ipcRenderer.sendSync('get-installing-packs'),
+    getPack: (id: string) => ipcRenderer.sendSync('get-pack', id),
+    getPacks: () => ipcRenderer.sendSync('get-packs'),
+    getUninstallingPacks: () => ipcRenderer.sendSync('get-uninstalling-packs'),
+    getUser: () => ipcRenderer.sendSync('get-user'),
+    loadIcon: (id: string) => ipcRenderer.sendSync('load-icon', id),
     login: () => ipcRenderer.sendSync('login'),
     logout: () => ipcRenderer.sendSync('logout'),
-    getUser: () => ipcRenderer.sendSync('get-user'),
-    getPacks: () => ipcRenderer.sendSync('get-packs'),
-    fetchPacks: () => ipcRenderer.sendSync('fetch-packs'),
-    getPack: (id: string) => ipcRenderer.sendSync('get-pack', id),
-    reloadPacks,
-    preInstall,
-    setInstalling,
-    preUninstall,
-    setUninstalling,
-    openURL: (url: string) => ipcRenderer.sendSync('open-url', url),
     openFolder: (path: string) => ipcRenderer.sendSync('open-folder', path),
-    selectFolder: (type: 'pack') => ipcRenderer.invoke('dialog:openDirectory', type),
+    openURL: (url: string) => ipcRenderer.sendSync('open-url', url),
+    pathJoin: (...args: string[]) => ipcRenderer.sendSync('load-icon', ...args),
     playPack: (id: string) => ipcRenderer.sendSync('play-pack', id),
+    reload: () => ipcRenderer.sendSync('reload'),
 
     createNotification,
-    updateNotification,
     deleteNotification,
-
     openPackCtxMenu,
-
-    getInstallingPacks: () => ipcRenderer.sendSync('get-installing-packs'),
-    getUninstallingPacks: () => ipcRenderer.sendSync('get-uninstalling-packs'),
+    preInstall,
+    preUninstall,
+    reloadPacks,
+    selectFolder: (type: 'pack') => ipcRenderer.invoke('dialog:openDirectory', type),
+    setInstalling,
+    setUninstalling,
+    updateNotification,
 });
-
-declare global {
-    interface Window {
-        dmc: {
-            loadIcon: (id: string) => string;
-            pathJoin: (...args: string[]) => string;
-            getConfig: () => Config;
-            editConfig: (newConfig: Config) => Config;
-            deleteConfig: () => 'success' | Error;
-            reload: () => void;
-            login: () => void;
-            logout: () => void;
-            getUser: () => void;
-            getPacks: () => Array<Pack<boolean>>;
-            fetchPacks: () => void;
-            getPack: (id: string) => { id: string; status: string; online: boolean; version: string; name: string; identifier: string } | LocalPack;
-            reloadPacks: (offline: boolean) => void;
-            preInstall: (packID: string) => void;
-            setInstalling: (packID: string) => void;
-            preUninstall: (packID: string) => void;
-            setUninstalling: (packID: string) => void;
-            openURL: (url: string) => true;
-            openFolder: (path: string) => true;
-            selectFolder: (type: 'pack') => string;
-            playPack: (id: string) => void;
-
-            createNotification: (id: string, data: { title: string; body: string; progress?: number }) => void;
-            updateNotification: (id: string, data: { title?: string; body?: string; progress?: number }) => void;
-            deleteNotification: (id: string) => void;
-
-            openPackCtxMenu: (options: { packID: string; posX: number; posY: number; offline: boolean; pack?: boolean }) => void;
-
-            getInstallingPacks: () => Array<string>;
-            getUninstallingPacks: () => Array<string>;
-        };
-    }
-}
 
 function reloadPacks(offline: boolean) {
     const packs = ipcRenderer.sendSync('get-packs') as Array<Pack<boolean>>;
@@ -130,7 +91,7 @@ function reloadPacks(offline: boolean) {
 function preInstall(packID: string) {
     const config: Config = ipcRenderer.sendSync('get-config');
     const packs = ipcRenderer.sendSync('get-packs');
-    const pack = packs.find((e: Pack<boolean>) => e.id === packID);
+    const pack = packs.find((p: Pack<boolean>) => p.id === packID);
     const installingPacks: Array<string> = ipcRenderer.sendSync('get-installing-packs');
     if (installingPacks.includes(pack.id)) return;
     const installSettings = document.getElementById('installSettings');
