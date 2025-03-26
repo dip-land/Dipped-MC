@@ -1,5 +1,5 @@
-import { Event } from '../event';
-import { authManager, editKey, getConfig, getKey, getPacks, getUpdating, getWindows, validateSender } from '../index';
+import { Event } from '../classes/event';
+import { authManager, editKey, getConfig, getKey, getPacks, getUpdating, getWindows, logger, validateSender } from '../index';
 import { Client, Authenticator, IUser } from 'minecraft-launcher-core';
 import { fabric, forge } from '../tomate-loaders/index';
 // eslint-disable-next-line import/no-unresolved
@@ -19,7 +19,7 @@ export default new Event(async (event, id) => {
     const packConfig = config.packs.find((p) => p.id === id);
     const updating = getUpdating();
     if (!pack || updating.includes(pack.id)) return false;
-    console.log(`Launching Pack ${pack.name} ${pack.launcher}-${pack.launcherVersion}`);
+    logger.log(`Launching Pack ${pack.name} ${pack.launcher}-${pack.launcherVersion}`);
     window.hide();
     loadingWindow.webContents.executeJavaScript('document.getElementById("infoText").innerText = "Starting Minecraft"');
     loadingWindow.webContents.executeJavaScript('document.getElementById("infoTextLower").innerText = "First time launch may take awhile..."');
@@ -61,9 +61,9 @@ export default new Event(async (event, id) => {
         window.maximize();
         window.focus();
         if (code === 0) {
-            console.log('User Exited Minecraft');
+            logger.log('User Exited Minecraft');
         } else {
-            console.log('Minecraft Crashed');
+            logger.error('Minecraft Crashed ', code);
             dialog.showErrorBox(`Minecraft Error`, `Minecraft exited with code ${code}, which is considered a crash`);
         }
 

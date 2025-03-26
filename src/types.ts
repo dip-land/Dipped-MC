@@ -1,6 +1,5 @@
 export interface Config {
     configPath: string;
-    appPath: string;
     installed: number;
     packPath: string;
     ram: number;

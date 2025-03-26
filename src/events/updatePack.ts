@@ -1,5 +1,5 @@
-import { Event } from '../event';
-import { addUpdating, apiServer, fetchPacks, getPacks, getUpdating, getWindows, removeUpdating, validateSender } from '../index';
+import { Event } from '../classes/event';
+import { addUpdating, apiServer, fetchPacks, getPacks, getUpdating, getWindows, logger, removeUpdating, validateSender } from '../index';
 import axios from 'axios';
 import type { Pack } from '../types';
 import { dialog } from 'electron';
@@ -65,12 +65,12 @@ async function updatePack(window: Electron.BrowserWindow, pack: Pack<boolean>, d
                     removeUpdating(pack.id);
                 })
                 .catch((error) => {
-                    console.log(error);
+                    logger.error(error);
                     dialog.showErrorBox(`Update Error`, `There was an error updating ${pack.name}. \n${error}`);
                 });
         });
     } catch (error) {
-        console.log(error);
+        logger.error(error);
         dialog.showErrorBox(`Update Error`, `There was an error updating ${pack.name}. \n${error}`);
     }
 }
@@ -102,12 +102,12 @@ async function unzip(zipPath: string, unzipToDir: string, packID: string) {
                                     const removeArray = JSON.parse(fileBuffer.toString());
                                     for (const target of removeArray) {
                                         rm(path.join(pack.local.path, target), (e) => {
-                                            if (e) console.log(e);
+                                            if (e) logger.error(e);
                                         });
                                     }
                                 } else {
                                     writeFile(path.join(pack.local.path, entry.fileName), fileBuffer.toString(), (e) => {
-                                        if (e) console.log(e);
+                                        if (e) logger.error(e);
                                     });
                                 }
                                 zipFile.readEntry();

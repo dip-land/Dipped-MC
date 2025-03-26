@@ -1,5 +1,5 @@
 import { getApp, getConfig, validateSender } from '../index';
-import { Event } from '../event';
+import { Event } from '../classes/event';
 import { rm } from 'fs';
 
 export default new Event(async (event) => {

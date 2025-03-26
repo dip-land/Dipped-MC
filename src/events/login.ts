@@ -1,4 +1,4 @@
-import { Event } from '../event';
+import { Event } from '../classes/event';
 import { authManager, editKey, validateSender } from '../index';
 
 export default new Event(async (event) => {

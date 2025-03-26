@@ -1,5 +1,5 @@
 import { editConfig, validateSender } from '../index';
-import { Event } from '../event';
+import { Event } from '../classes/event';
 
 export default new Event(async (event, newConfig) => {
     if (!validateSender(event.senderFrame)) return null;

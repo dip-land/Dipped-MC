@@ -197,7 +197,6 @@ async function preUpdate(packID: string) {
 }
 
 function setUpdating(packID: string) {
-    console.log(packID);
     const pack = document.getElementById(packID);
     const button = pack.children[3].children[0] as HTMLButtonElement;
     const infoText = pack.children[4].children[0];

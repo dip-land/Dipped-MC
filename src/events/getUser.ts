@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Event } from '../event';
+import { Event } from '../classes/event';
 import { getKey, validateSender } from '../index';
 import type { MclcUser } from 'msmc/types/types';
 

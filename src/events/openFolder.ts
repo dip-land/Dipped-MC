@@ -1,5 +1,5 @@
 import { exec } from 'child_process';
-import { Event } from '../event';
+import { Event } from '../classes/event';
 import { validateSender } from '../index';
 
 let lastOpen = 0;

@@ -1,6 +1,6 @@
 import path from 'path';
-import { Event } from '../event';
-import { addUninstalling, editConfig, fetchPacks, getConfig, getPacks, getUninstalling, getWindows, removeUninstalling, validateSender } from '../index';
+import { Event } from '../classes/event';
+import { addUninstalling, editConfig, fetchPacks, getConfig, getPacks, getUninstalling, getWindows, logger, removeUninstalling, validateSender } from '../index';
 import { existsSync, mkdirSync, rename } from 'fs';
 import { rmdir } from 'fs/promises';
 
@@ -18,13 +18,13 @@ export default new Event(async (event, options: { packID: string; deleteSettings
     if (!options.deleteSettings) {
         if (!existsSync(path.join(config.packPath, 'uninstalled', options.packID))) mkdirSync(path.join(config.packPath, 'uninstalled', options.packID), { recursive: true });
         rename(path.join(packDir, 'options.txt'), path.join(config.packPath, 'uninstalled', options.packID, 'options.txt'), (e) => {
-            console.log(e);
+            logger.error(e);
         });
     }
     if (!options.deleteWorlds) {
         if (!existsSync(path.join(config.packPath, 'uninstalled', options.packID))) mkdirSync(path.join(config.packPath, 'uninstalled', options.packID), { recursive: true });
         rename(path.join(packDir, 'saves'), path.join(config.packPath, 'uninstalled', options.packID, 'saves'), (e) => {
-            console.log(e);
+            logger.error(e);
         });
     }
 
@@ -44,6 +44,6 @@ export default new Event(async (event, options: { packID: string; deleteSettings
                 });
         })
         .catch((e) => {
-            console.log(e);
+            logger.error(e);
         });
 });

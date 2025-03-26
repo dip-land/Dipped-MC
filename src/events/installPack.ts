@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { Event } from '../event';
-import { addInstalling, apiServer, editConfig, fetchPacks, getInstalling, getPacks, getWindows, removeInstalling, validateSender } from '../index';
+import { Event } from '../classes/event';
+import { addInstalling, apiServer, editConfig, fetchPacks, getInstalling, getPacks, getWindows, logger, removeInstalling, validateSender } from '../index';
 import { dialog } from 'electron';
 import { createWriteStream, existsSync, rename, rm, rmdir, writeFile } from 'node:fs';
 import path from 'node:path';
@@ -55,13 +55,13 @@ async function installPack(pack: Pack<boolean>, config: Config, data: string) {
                         rmdir(path.join(packDir, 'saves'), (e) => {
                             if (e) return;
                             rename(path.join(config.packPath, 'uninstalled', pack.id, 'saves'), path.join(packDir, 'saves'), (e) => {
-                                if (e) console.log(e);
+                                if (e) logger.error(e);
                             });
                         });
                         rm(path.join(packDir, 'options.txt'), (e) => {
                             if (e) return;
                             rename(path.join(config.packPath, 'uninstalled', pack.id, 'options.txt'), path.join(packDir, 'options.txt'), (e) => {
-                                console.log(e);
+                                logger.error(e);
                             });
                         });
                         rmdir(path.join(config.packPath, 'uninstalled', pack.id), (e) => {
@@ -81,12 +81,12 @@ async function installPack(pack: Pack<boolean>, config: Config, data: string) {
                     removeInstalling(pack.id);
                 })
                 .catch((e) => {
-                    console.log(e);
+                    logger.error(e);
                     dialog.showErrorBox(`Install Error`, `There was an error installing ${pack.name}. \n${e}`);
                 });
         });
     } catch (e) {
-        console.log(e);
+        logger.error(e);
         dialog.showErrorBox(`Install Error`, `There was an error installing ${pack.name}. \n${e}`);
     }
 }

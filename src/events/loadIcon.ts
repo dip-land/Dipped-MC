@@ -1,5 +1,5 @@
 import path from 'path';
-import { Event } from '../event';
+import { Event } from '../classes/event';
 import { readFileSync } from 'fs';
 import { getConfig, validateSender } from '../index';
 

@@ -1,5 +1,5 @@
 import { validateSender } from '../index';
-import { Event } from '../event';
+import { Event } from '../classes/event';
 import { shell } from 'electron';
 
 export default new Event(async (event, url: string) => {

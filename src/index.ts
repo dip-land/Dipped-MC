@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { app, BrowserWindow, ipcMain, dialog, autoUpdater } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, autoUpdater, WebFrameMain } from 'electron';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'os';
@@ -7,6 +7,7 @@ import os from 'os';
 import { Auth, tokenUtils } from 'msmc';
 import type { MclcUser } from 'msmc/types/types';
 import { Config, LocalPack, Pack, WebPack } from './types';
+import { Logger } from './classes/logger';
 
 export const apiServer = 'https://dipped.dev/api';
 const updateServer = 'https://dipped-mc-updater.vercel.app';
@@ -23,7 +24,6 @@ const defaultConfigPath = app.getPath('userData');
 const defaultPackPath = path.join(app.getPath('userData'), 'packs');
 const defaultConfig: Config = {
     configPath: defaultConfigPath,
-    appPath: app.getAppPath(),
     installed: Date.now(),
     packPath: defaultPackPath,
     ram: Math.floor(os.totalmem() / 2 / 1e6 > 12000 ? 12000 : os.totalmem() / 2 / 1e6) / 1000,
@@ -41,6 +41,8 @@ let webPacks: Array<WebPack> = [];
 let localPacks: Array<LocalPack> = [];
 export const authManager = new Auth('select_account');
 
+export const logger = new Logger({ outputDir: path.join(defaultConfigPath, 'logs') });
+
 //check if config exists
 if (fs.existsSync(path.join(defaultConfigPath, '/config.json'))) {
     fs.readFile(path.join(defaultConfigPath, '/config.json'), (err, data) => {
@@ -51,12 +53,12 @@ if (fs.existsSync(path.join(defaultConfigPath, '/config.json'))) {
     try {
         fs.mkdirSync(defaultConfigPath);
     } catch (error) {
-        console.log(error);
+        logger.error(error);
     }
 
     fs.writeFile(path.join(defaultConfigPath, '/config.json'), JSON.stringify(defaultConfig, null, 2), (err) => {
         if (err) throw err;
-        console.log('Config File Created.');
+        logger.log('Config File Created.');
     });
 }
 
@@ -75,11 +77,11 @@ if (fs.existsSync(path.join(defaultConfigPath, '/k._dmc'))) {
     try {
         fs.mkdirSync(defaultConfigPath);
     } catch (error) {
-        console.log(error);
+        logger.error(error);
     }
     fs.writeFile(path.join(defaultConfigPath, '/k._dmc'), JSON.stringify({}, null, 2), (err) => {
         if (err) throw err;
-        console.log('Key File Created.');
+        logger.log('Key File Created.');
     });
 }
 
@@ -230,7 +232,7 @@ export function getConfig() {
 export function editConfig(newConfig: Config) {
     fs.writeFile(path.join(config.configPath, '/config.json'), JSON.stringify(newConfig, null, 2), (err) => {
         if (err) throw err;
-        console.log('Config File Edited.');
+        logger.log('Config File Edited.');
         config = newConfig;
         return config;
     });
@@ -242,7 +244,7 @@ export function getKey() {
 export function editKey(newKey: MclcUser | object) {
     fs.writeFile(path.join(config.configPath, '/k._dmc'), JSON.stringify(newKey, null, 2), (err) => {
         if (err) throw err;
-        console.log('Key Edited.');
+        logger.log('Key Edited.');
         key = newKey;
         return key;
     });
@@ -367,9 +369,9 @@ export async function getPacks() {
     return _packs;
 }
 
-export function validateSender(frame) {
-    // Value the host of the URL using an actual URL parser and an allowlist
-    if (new URL(frame.url).hostname === 'localhost') return true;
+export function validateSender(frame: WebFrameMain) {
+    const url = new URL(frame.url);
+    if (url.origin === 'file://' || url.hostname === 'localhost') return true;
     return false;
 }
 
