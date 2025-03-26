@@ -1,12 +1,12 @@
-import { IpcMainEvent } from 'electron';
+import { IpcMainInvokeEvent } from 'electron';
 
 export class Event {
-    #fn: (event: IpcMainEvent, ...args) => Promise<unknown>;
-    constructor(fn: (event: IpcMainEvent, ...args) => Promise<unknown>) {
+    #fn: (event: IpcMainInvokeEvent, ...args) => Promise<unknown>;
+    constructor(fn: (event: IpcMainInvokeEvent, ...args) => Promise<unknown>) {
         this.#fn = fn;
     }
 
-    public get fn(): (event: IpcMainEvent, ...args) => Promise<unknown> {
+    public get fn(): (event: IpcMainInvokeEvent, ...args) => Promise<unknown> {
         return this.#fn;
     }
 }

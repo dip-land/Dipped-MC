@@ -1,5 +1,5 @@
 import { Event } from '../event';
-import { authManager, editKey, getConfig, getKey, getPacks, getWindows } from '../index';
+import { authManager, editKey, getConfig, getKey, getPacks, getUpdating, getWindows, validateSender } from '../index';
 import { Client, Authenticator, IUser } from 'minecraft-launcher-core';
 import { fabric, forge } from '../tomate-loaders/index';
 // eslint-disable-next-line import/no-unresolved
@@ -10,13 +10,15 @@ import type { MclcUser } from 'msmc/types/types';
 const launcher = new Client();
 
 export default new Event(async (event, id) => {
+    if (!validateSender(event.senderFrame)) return null;
     const config = getConfig();
     const key = getKey();
     const window = getWindows().main;
     const loadingWindow = getWindows().secondary;
     const pack = (await getPacks()).find((p) => p.id === id);
     const packConfig = config.packs.find((p) => p.id === id);
-    if (!pack) return (event.returnValue = false);
+    const updating = getUpdating();
+    if (!pack || updating.includes(pack.id)) return false;
     console.log(`Launching Pack ${pack.name} ${pack.launcher}-${pack.launcherVersion}`);
     window.hide();
     loadingWindow.webContents.executeJavaScript('document.getElementById("infoText").innerText = "Starting Minecraft"');

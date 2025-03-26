@@ -1,11 +1,13 @@
 import { Event } from '../event';
-import { editKey } from '../index';
+import { editKey, validateSender } from '../index';
 
 export default new Event(async (event) => {
+    if (!validateSender(event.senderFrame)) return null;
     try {
-        event.returnValue = editKey({});
+        editKey({});
         event.sender.reload();
+        return true;
     } catch (error) {
-        event.returnValue = false;
+        return false;
     }
 });

@@ -1,7 +1,8 @@
 import { Event } from '../event';
-import { getApp } from '../index';
+import { getApp, validateSender } from '../index';
 
-export default new Event(async () => {
+export default new Event(async (event) => {
+    if (!validateSender(event.senderFrame)) return null;
     const app = getApp();
     app.relaunch();
     app.exit();

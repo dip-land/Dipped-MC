@@ -85,7 +85,7 @@
             <aside></aside>
             <div></div>
         </div>
-        <div id="installSettings" class="hidden">
+        <div id="installSettings" class="confirmation hidden">
             <div class="content">
                 <h1>Install Settings</h1>
                 <label for="installLocation">Install Location</label><br>
@@ -101,18 +101,35 @@
                 </div>
             </div>
         </div>
-        <div id="uninstallConfirmation" class="hidden">
+        <div id="uninstallConfirmation" class="confirmation hidden">
             <div class="content center">
                 <h1>Uninstall Pack</h1>
                 <h3 style="margin: 0;">Are you sure you want to uninstall <b style="text-decoration: underline;"></b>?</h3>
-                <span>Uninstalling deletes everything <b style="text-decoration: underline; font-weight: 400;">except</b> your worlds and settings unless the checkbox below is checked.</span>
-                <div style="margin: 1rem 0; display: flex; gap: 0.5rem; align-items: center;">
-                    <input id="deleteWorldsAndSettings" type="checkbox" name="deleteWorldsAndSettings">
-                    <label for="deleteWorldsAndSettings">Delete worlds and settings for this pack</label>
+                <span>Uninstalling deletes everything <b style="text-decoration: underline; font-weight: 400;">except</b> your worlds and settings unless the checkboxes below are checked.</span>
+                <div style="margin: 1rem 0;display: flex; gap: 0.5rem; flex-direction: column;">
+                    <div style="align-items: center; display: flex; gap: 0.5rem;">
+                        <input id="deleteWorlds" type="checkbox" name="deleteWorlds">
+                        <label for="deleteWorlds">Delete worlds for this pack</label>
+                    </div>
+                    <div style="align-items: center; display: flex; gap: 0.5rem;">
+                        <input id="deleteSettings" type="checkbox" name="deleteSettings">
+                        <label for="deleteSettings">Delete settings for this pack</label>
+                    </div>
                 </div>
                 <div class="buttons">
                     <button id="uninstallPack">Uninstall</button>
                     <button id="cancelPackUninstall">Cancel</button>
+                </div>
+            </div>
+        </div>
+        <div id="updateConfirmation" class="confirmation hidden">
+            <div class="content center">
+                <h1>Update Pack</h1>
+                <h3 style="margin: 0;">Are you sure you want to update <b style="text-decoration: underline;"></b>?</h3>
+                <span>Updating may limit your ability to play on public servers, not updating may limit your ability to play on dipped.dev servers.</span>
+                <div class="buttons">
+                    <button id="updatePack">Update</button>
+                    <button id="cancelPackUpdate">Cancel</button>
                 </div>
             </div>
         </div>

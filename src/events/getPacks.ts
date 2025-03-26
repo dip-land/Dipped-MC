@@ -1,6 +1,7 @@
 import { Event } from '../event';
-import { getPacks } from '../index';
+import { getPacks, validateSender } from '../index';
 
 export default new Event(async (event) => {
-    event.returnValue = await getPacks();
+    if (!validateSender(event.senderFrame)) return null;
+    return await getPacks();
 });

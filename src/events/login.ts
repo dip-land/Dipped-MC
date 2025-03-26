@@ -1,13 +1,15 @@
 import { Event } from '../event';
-import { authManager, editKey } from '../index';
+import { authManager, editKey, validateSender } from '../index';
 
 export default new Event(async (event) => {
+    if (!validateSender(event.senderFrame)) return null;
     try {
         const xboxManager = await authManager.launch('raw');
         const token = await xboxManager.getMinecraft();
-        event.returnValue = editKey(token.mclc(true));
+        editKey(token.mclc(true));
         event.sender.reload();
+        return true;
     } catch (error) {
-        event.returnValue = false;
+        return false;
     }
 });

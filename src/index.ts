@@ -35,6 +35,7 @@ let window: BrowserWindow;
 let loadingWindow: BrowserWindow;
 const installingPacks: Array<string> = [];
 const uninstallingPacks: Array<string> = [];
+const updatingPacks: Array<string> = [];
 let packs: Array<Pack<boolean>> = [];
 let webPacks: Array<WebPack> = [];
 let localPacks: Array<LocalPack> = [];
@@ -103,11 +104,11 @@ const createWindow = () => {
         icon: path.join(process.cwd(), '/public/favicon.ico'),
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
+            devTools: app.isPackaged ? false : true,
         },
     });
 
     if (app.isPackaged) mainWindow.removeMenu();
-    if (!app.isPackaged) mainWindow.webContents.openDevTools();
 
     const secondaryWindow = new BrowserWindow({
         title: `Dipped MC v.${app.getVersion()}`,
@@ -166,6 +167,7 @@ import getInstallingPacksEvent from './events/getInstallingPacks';
 import getPackEvent from './events/getPack';
 import getPacksEvent from './events/getPacks';
 import getUninstallingPacksEvent from './events/getUninstallingPacks';
+import getUpdatingPacksEvent from './events/getUpdatingPacks';
 import getUserEvent from './events/getUser';
 import installPackEvent from './events/installPack';
 import loadIconEvent from './events/loadIcon';
@@ -177,28 +179,31 @@ import pathJoinEvent from './events/pathJoin';
 import playPackEvent from './events/playPack';
 import reloadEvent from './events/reload';
 import uninstallPackEvent from './events/uninstallPack';
+import updatePackEvent from './events/updatePack';
 
 app.on('ready', async () => {
     createWindow();
-    ipcMain.on('delete-config', deleteConfigEvent.fn);
-    ipcMain.on('edit-config', editConfigEvent.fn);
-    ipcMain.on('fetch-packs', fetchPacksEvent.fn);
-    ipcMain.on('get-config', getConfigEvent.fn);
-    ipcMain.on('get-installing-packs', getInstallingPacksEvent.fn);
-    ipcMain.on('get-pack', getPackEvent.fn);
-    ipcMain.on('get-packs', getPacksEvent.fn);
-    ipcMain.on('get-uninstalling-packs', getUninstallingPacksEvent.fn);
-    ipcMain.on('get-user', getUserEvent.fn);
-    ipcMain.on('install-pack', installPackEvent.fn);
-    ipcMain.on('load-icon', loadIconEvent.fn);
-    ipcMain.on('login', loginEvent.fn);
-    ipcMain.on('logout', logoutEvent.fn);
-    ipcMain.on('open-folder', openFolderEvent.fn);
-    ipcMain.on('open-url', openUrlEvent.fn);
-    ipcMain.on('path-join', pathJoinEvent.fn);
-    ipcMain.on('play-pack', playPackEvent.fn);
-    ipcMain.on('reload', reloadEvent.fn);
-    ipcMain.on('uninstall-pack', uninstallPackEvent.fn);
+    ipcMain.handle('delete-config', deleteConfigEvent.fn);
+    ipcMain.handle('edit-config', editConfigEvent.fn);
+    ipcMain.handle('fetch-packs', fetchPacksEvent.fn);
+    ipcMain.handle('get-config', getConfigEvent.fn);
+    ipcMain.handle('get-installing-packs', getInstallingPacksEvent.fn);
+    ipcMain.handle('get-pack', getPackEvent.fn);
+    ipcMain.handle('get-packs', getPacksEvent.fn);
+    ipcMain.handle('get-uninstalling-packs', getUninstallingPacksEvent.fn);
+    ipcMain.handle('get-updating-packs', getUpdatingPacksEvent.fn);
+    ipcMain.handle('get-user', getUserEvent.fn);
+    ipcMain.handle('install-pack', installPackEvent.fn);
+    ipcMain.handle('load-icon', loadIconEvent.fn);
+    ipcMain.handle('login', loginEvent.fn);
+    ipcMain.handle('logout', logoutEvent.fn);
+    ipcMain.handle('open-folder', openFolderEvent.fn);
+    ipcMain.handle('open-url', openUrlEvent.fn);
+    ipcMain.handle('path-join', pathJoinEvent.fn);
+    ipcMain.handle('play-pack', playPackEvent.fn);
+    ipcMain.handle('reload', reloadEvent.fn);
+    ipcMain.handle('uninstall-pack', uninstallPackEvent.fn);
+    ipcMain.handle('update-pack', updatePackEvent.fn);
 
     ipcMain.handle('dialog:openDirectory', async () => {
         const { canceled, filePaths } = await dialog.showOpenDialog(window, {
@@ -269,6 +274,19 @@ export function removeUninstalling(id: string) {
     return uninstallingPacks;
 }
 
+export function getUpdating() {
+    return updatingPacks;
+}
+export function addUpdating(id: string) {
+    updatingPacks.push(id);
+    return updatingPacks;
+}
+export function removeUpdating(id: string) {
+    const index = updatingPacks.findIndex((packID) => packID === id);
+    updatingPacks.splice(index, 1);
+    return updatingPacks;
+}
+
 export async function fetchPacks() {
     localPacks = [];
     for (const pack of config.packs) {
@@ -313,6 +331,7 @@ export async function getPacks() {
             gameVersion: undefined,
             launcher: undefined,
             launcherVersion: undefined,
+            local: undefined,
         });
     }
     for (const pack of localPacks) {
@@ -332,6 +351,7 @@ export async function getPacks() {
                 gameVersion: pack.gameVersion,
                 launcher: pack.launcher,
                 launcherVersion: pack.launcherVersion,
+                local: getConfig().packs.find((p) => p.id === pack.id),
             });
         } else {
             target.localVersion = pack.version;
@@ -339,11 +359,18 @@ export async function getPacks() {
             target.gameVersion = pack.gameVersion;
             target.launcher = pack.launcher;
             target.launcherVersion = pack.launcherVersion;
+            target.local = getConfig().packs.find((p) => p.id === pack.id);
             _packs.splice(index, 1, target);
         }
     }
     packs = _packs;
     return _packs;
+}
+
+export function validateSender(frame) {
+    // Value the host of the URL using an actual URL parser and an allowlist
+    if (new URL(frame.url).hostname === 'localhost') return true;
+    return false;
 }
 
 export function newAbortSignal(timeoutMs: number) {
@@ -357,4 +384,4 @@ setInterval(() => {
     if (app.isPackaged) {
         autoUpdater.checkForUpdates();
     }
-}, 60000);
+}, 1000 * 60 * 15);

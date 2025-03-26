@@ -360,6 +360,7 @@ nav {
                 text-wrap: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
+                font-size: 1.05rem;
             }
         }
 
@@ -448,10 +449,11 @@ nav {
             margin: 0.25rem;
             font-size: 0.8rem;
             font-weight: bold;
-            background-color: rgba(8, 8, 9, 0.4);
+            background-color: rgba(8, 8, 9, 0.2);
             padding: 0.25rem 0.5rem;
             border-radius: 5px;
-            color: hsl(60, 100%, 60%);
+            color: hsl(59, 100%, 60%);
+            backdrop-filter: blur(20px);
         }
 
         .version {
@@ -460,10 +462,11 @@ nav {
             top: 0.25rem;
             font-size: 0.8rem;
             font-weight: bold;
-            background-color: rgba(8, 8, 9, 0.4);
+            background-color: rgba(8, 8, 9, 0.2);
             padding: 0.25rem 0.5rem;
             border-radius: 5px;
             text-align: end;
+            backdrop-filter: blur(20px);
 
             img {
                 display: none;
@@ -476,8 +479,7 @@ nav {
     }
 }
 
-#installSettings,
-#uninstallConfirmation {
+.confirmation {
     position: fixed;
     inset: 0;
     background-color: rgba(0, 0, 0, 0);

@@ -1,6 +1,7 @@
-import { editConfig } from '../index';
+import { editConfig, validateSender } from '../index';
 import { Event } from '../event';
 
 export default new Event(async (event, newConfig) => {
-    event.returnValue = editConfig(newConfig);
+    if (!validateSender(event.senderFrame)) return null;
+    return editConfig(newConfig);
 });

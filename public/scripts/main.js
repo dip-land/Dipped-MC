@@ -1,5 +1,5 @@
-window.onload = () => {
-    const packs = window.dmc.getPacks();
+window.onload = async () => {
+    const packs = await window.dmc.getPacks();
     let offline = false;
     if (!packs.find((pack) => pack.installed === false)) offline = true;
 
@@ -29,7 +29,7 @@ window.onload = () => {
         }
     };
 
-    const user = window.dmc.getUser();
+    const user = await window.dmc.getUser();
     const container = document.getElementById('user');
     let userContext = false;
     if (user.status === 'valid' && !offline) {
@@ -84,6 +84,11 @@ window.onload = () => {
             container.classList.toggle('active');
         }
     });
+
+    setInterval(() => {
+        window.dmc.fetchPacks();
+        window.dmc.reloadPacks(offline);
+    }, 1000 * 60 * 15);
 };
 
 window.addEventListener('resize', () => {

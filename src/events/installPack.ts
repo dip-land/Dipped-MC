@@ -1,30 +1,32 @@
 import axios from 'axios';
 import { Event } from '../event';
-import { apiServer, editConfig, getInstalling, getWindows, removeInstalling } from '../index';
+import { addInstalling, apiServer, editConfig, fetchPacks, getInstalling, getPacks, getWindows, removeInstalling, validateSender } from '../index';
 import { dialog } from 'electron';
 import { createWriteStream, existsSync, rename, rm, rmdir, writeFile } from 'node:fs';
 import path from 'node:path';
 import { mkdirp } from 'mkdirp';
 import yauzl from 'yauzl';
-import type { Config, LocalPack, WebPack } from '../types';
+import type { Config, Pack } from '../types';
 
 export default new Event(async (event, id, config) => {
+    if (!validateSender(event.senderFrame)) return null;
     if (getInstalling().includes(id)) return;
     const window = getWindows().main;
-    removeInstalling(id);
+    addInstalling(id);
     editConfig(config);
-    const packs = await (await fetch(`${apiServer}/minecraft/servers`)).json();
-    const pack = packs.data.find((p: WebPack) => p.id === id);
-    window.webContents.executeJavaScript(`window.dmc.createNotification("${id}", { title: "Downloading", body: "${pack.name}", progress: 0})`);
+    await fetchPacks();
+    const packs = await getPacks();
+    const pack = packs.find((p: Pack<boolean>) => p.id === id);
+    await window.webContents.executeJavaScript(`window.dmc.createNotification("${id}", { title: "Downloading", body: "${pack.name}", progress: 0})`);
     const controller = new AbortController();
     axios
         .get(`${apiServer}/minecraft/packs/${id}`, {
             signal: controller.signal,
             responseType: 'arraybuffer',
-            onDownloadProgress: (progressEvent) => {
+            onDownloadProgress: async (progressEvent) => {
                 const percent = Math.floor((progressEvent.progress as number) * 100);
                 window.setProgressBar(percent / 100 / 2);
-                window.webContents.executeJavaScript(`window.dmc.updateNotification("${id}", { progress: ${percent / 2}})`);
+                await window.webContents.executeJavaScript(`window.dmc.updateNotification("${id}", { progress: ${percent / 2}})`);
             },
         })
         .then((res) => {
@@ -39,11 +41,11 @@ export default new Event(async (event, id, config) => {
         });
 });
 
-async function installPack(pack: LocalPack, config: Config, data: string) {
+async function installPack(pack: Pack<boolean>, config: Config, data: string) {
     const window = getWindows().main;
     try {
         writeFile(path.join(config.packPath, `${pack.identifier}.zip`), Buffer.from(data, 'binary'), (err) => {
-            if (err) dialog.showErrorBox(`Install Error`, `There was an error installing that pack. \n${err}`);
+            if (err) dialog.showErrorBox(`Install Error`, `There was an error installing ${pack.name}. \n${err}`);
             const packDir = config.packs.find((p: Config['packs'][0]) => p.id === pack.id)?.path;
             if (!packDir) return;
             unzip(path.join(config.packPath, `${pack.identifier}.zip`), packDir, pack.id)
@@ -78,14 +80,14 @@ async function installPack(pack: LocalPack, config: Config, data: string) {
                     window.webContents.executeJavaScript(`window.dmc.fetchPacks()`);
                     removeInstalling(pack.id);
                 })
-                .catch((error) => {
-                    console.log(error);
-                    dialog.showErrorBox(`Install Error`, `There was an error installing that pack. \n${error}`);
+                .catch((e) => {
+                    console.log(e);
+                    dialog.showErrorBox(`Install Error`, `There was an error installing ${pack.name}. \n${e}`);
                 });
         });
-    } catch (error) {
-        console.log(error);
-        dialog.showErrorBox(`Install Error`, `There was an error installing that pack. \n${error}`);
+    } catch (e) {
+        console.log(e);
+        dialog.showErrorBox(`Install Error`, `There was an error installing ${pack.name}. \n${e}`);
     }
 }
 
@@ -101,10 +103,10 @@ function unzip(zipPath: string, unzipToDir: string, packID: string) {
                     return;
                 }
                 zipFile.readEntry();
-                zipFile.on('entry', (entry) => {
+                zipFile.on('entry', async (entry) => {
                     const progress = zipFile.entriesRead / zipFile.entryCount / 2 + 0.5;
                     window.setProgressBar(progress);
-                    window.webContents.executeJavaScript(`window.dmc.updateNotification("${packID}", { title: "Installing", progress: ${progress * 100}})`);
+                    await window.webContents.executeJavaScript(`window.dmc.updateNotification("${packID}", { title: "Installing", progress: ${progress * 100}})`);
                     try {
                         if (/\/$/.test(entry.fileName)) {
                             mkdirp.sync(path.join(unzipToDir, entry.fileName));

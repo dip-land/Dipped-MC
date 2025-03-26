@@ -1,6 +1,7 @@
 import { Event } from '../event';
-import { getUninstalling } from '../index';
+import { getUninstalling, validateSender } from '../index';
 
 export default new Event(async (event) => {
-    event.returnValue = getUninstalling();
+    if (!validateSender(event.senderFrame)) return null;
+    return getUninstalling();
 });

@@ -1,6 +1,7 @@
 import { Event } from '../event';
-import { getConfig } from '../index';
+import { getConfig, validateSender } from '../index';
 
 export default new Event(async (event) => {
-    event.returnValue = getConfig();
+    if (!validateSender(event.senderFrame)) return null;
+    return getConfig();
 });
