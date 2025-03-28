@@ -4,7 +4,12 @@ import { contextBridge, ipcRenderer } from 'electron';
 import { Config, Pack } from './types';
 
 contextBridge.exposeInMainWorld('dmc', {
+    appClose: () => ipcRenderer.invoke('app-close'),
+    appMaximize: () => ipcRenderer.invoke('app-maximize'),
+    appMinimize: () => ipcRenderer.invoke('app-minimize'),
+    appUpdate: () => ipcRenderer.invoke('app-update'),
     deleteConfig: () => ipcRenderer.invoke('delete-config'),
+    devTools: (shouldOpen: boolean) => ipcRenderer.invoke('devtools', shouldOpen),
     editConfig: (newConfig: Config) => ipcRenderer.invoke('edit-config', newConfig) as Promise<Config>,
     fetchPacks: () => ipcRenderer.invoke('fetch-packs'),
     getConfig: () => ipcRenderer.invoke('get-config') as Promise<Config>,
@@ -21,6 +26,7 @@ contextBridge.exposeInMainWorld('dmc', {
     pathJoin: (...args: string[]) => ipcRenderer.invoke('load-icon', ...args),
     playPack: (id: string) => ipcRenderer.invoke('play-pack', id),
     reload: () => ipcRenderer.invoke('reload'),
+    selectFolder: (type: 'pack') => ipcRenderer.invoke('dialog:openDirectory', type),
 
     createNotification,
     deleteNotification,
@@ -29,7 +35,6 @@ contextBridge.exposeInMainWorld('dmc', {
     preUninstall,
     preUpdate,
     reloadPacks,
-    selectFolder: (type: 'pack') => ipcRenderer.invoke('dialog:openDirectory', type),
     setInstalling,
     setUninstalling,
     setUpdating,

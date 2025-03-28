@@ -13,19 +13,16 @@ window.onload = async () => {
     let devOptions = false;
     const devMenu = document.getElementById('dev_tools');
     const map = {}; // You could also use an array
-    onkeydown = onkeyup = function (e) {
+    onkeydown = onkeyup = async function (e) {
         map[e.key] = e.type == 'keydown';
-        if (map['Shift'] && map['F1'] && map['Control']) {
+        if (map['Shift'] && map['Control'] && map['I']) {
             devOptions = !devOptions;
             devMenu.classList.toggle('hidden');
             const debug = document.getElementById('debug');
             debug.classList.toggle('hidden');
             const debugConfig = document.getElementById('debugConfig');
-            if (devOptions) {
-                debugConfig.innerText = JSON.stringify(this.dmc.getConfig(), null, 4);
-            } else {
-                debugConfig.innerText = '';
-            }
+            debugConfig.innerText = JSON.stringify(await this.dmc.getConfig(), null, 4);
+            window.dmc.devTools(!debug.classList?.contains('hidden'));
         }
     };
 
@@ -49,7 +46,6 @@ window.onload = async () => {
         document.getElementById('username').innerText = user.name;
         container.addEventListener('click', (event) => {
             document.getElementById('nav_popout').classList.toggle('hidden');
-            document.getElementById('caret').classList.toggle('rotated');
             container.classList.toggle('active');
             userContext = event.target;
         });
@@ -73,14 +69,12 @@ window.onload = async () => {
         }
         if (event.target.parentNode.id !== 'nav_popout' && container.classList.contains('active') && event.target !== userContext) {
             document.getElementById('nav_popout').classList.add('hidden');
-            document.getElementById('caret').classList.add('rotated');
             container.classList.remove('active');
         }
     });
     document.addEventListener('contextmenu', (event) => {
         if (event.target.parentNode.id !== 'nav_popout' && container.classList.contains('active')) {
             document.getElementById('nav_popout').classList.toggle('hidden');
-            document.getElementById('caret').classList.toggle('rotated');
             container.classList.toggle('active');
         }
     });
@@ -91,11 +85,16 @@ window.onload = async () => {
     }, 1000 * 60 * 15);
 };
 
+const resizer = document.getElementById('resizer');
 window.addEventListener('resize', () => {
+    resizer.setAttribute('style', `max-width: ${document.getElementById('end').getBoundingClientRect().width + 20}px;`);
     document.getElementById('context').classList.add('hidden');
     if (document.getElementById('user').classList.contains('active')) {
         document.getElementById('nav_popout').classList.toggle('hidden');
-        document.getElementById('caret').classList.toggle('rotated');
         document.getElementById('user').classList.toggle('active');
     }
 });
+
+setTimeout(() => {
+    resizer.setAttribute('style', `max-width: ${document.getElementById('end').getBoundingClientRect().width + 20}px;`);
+}, 400);

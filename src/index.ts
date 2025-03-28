@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { app, BrowserWindow, ipcMain, dialog, autoUpdater, WebFrameMain } from 'electron';
+import { app, BrowserWindow, ipcMain, autoUpdater, WebFrameMain } from 'electron';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'os';
@@ -96,7 +96,7 @@ app.on('window-all-closed', () => {
 
 const createWindow = () => {
     const mainWindow = new BrowserWindow({
-        title: `Dipped MC v.${app.getVersion()}`,
+        title: `Dipped MC`,
         backgroundColor: '#0f121a',
         width: 1280,
         height: 720,
@@ -104,16 +104,17 @@ const createWindow = () => {
         minHeight: 480,
         show: false,
         icon: path.join(process.cwd(), '/public/favicon.ico'),
+        titleBarStyle: 'hidden',
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
-            devTools: app.isPackaged ? false : true,
+            contextIsolation: true,
         },
     });
 
-    if (app.isPackaged) mainWindow.removeMenu();
+    //mainWindow.removeMenu();
 
     const secondaryWindow = new BrowserWindow({
-        title: `Dipped MC v.${app.getVersion()}`,
+        title: `Dipped MC`,
         backgroundColor: '#0f121a',
         width: 360,
         height: 420,
@@ -161,7 +162,12 @@ app.on('activate', () => {
     }
 });
 
+import appCloseEvent from './events/appClose';
+import appMaximizeEvent from './events/appMaximize';
+import appMinimizeEvent from './events/appMinimize';
+import appUpdateEvent from './events/appUpdate';
 import deleteConfigEvent from './events/deleteConfig';
+import devToolsEvent from './events/devTools';
 import editConfigEvent from './events/editConfig';
 import fetchPacksEvent from './events/fetchPacks';
 import getConfigEvent from './events/getConfig';
@@ -175,6 +181,7 @@ import installPackEvent from './events/installPack';
 import loadIconEvent from './events/loadIcon';
 import loginEvent from './events/login';
 import logoutEvent from './events/logout';
+import openDirectoryEvent from './events/openDirectory';
 import openFolderEvent from './events/openFolder';
 import openUrlEvent from './events/openUrl';
 import pathJoinEvent from './events/pathJoin';
@@ -185,7 +192,13 @@ import updatePackEvent from './events/updatePack';
 
 app.on('ready', async () => {
     createWindow();
+    ipcMain.handle('app-close', appCloseEvent.fn);
+    ipcMain.handle('app-maximize', appMaximizeEvent.fn);
+    ipcMain.handle('app-minimize', appMinimizeEvent.fn);
+    ipcMain.handle('app-update', appUpdateEvent.fn);
     ipcMain.handle('delete-config', deleteConfigEvent.fn);
+    ipcMain.handle('devtools', devToolsEvent.fn);
+    ipcMain.handle('dialog:openDirectory', openDirectoryEvent.fn);
     ipcMain.handle('edit-config', editConfigEvent.fn);
     ipcMain.handle('fetch-packs', fetchPacksEvent.fn);
     ipcMain.handle('get-config', getConfigEvent.fn);
@@ -207,16 +220,13 @@ app.on('ready', async () => {
     ipcMain.handle('uninstall-pack', uninstallPackEvent.fn);
     ipcMain.handle('update-pack', updatePackEvent.fn);
 
-    ipcMain.handle('dialog:openDirectory', async () => {
-        const { canceled, filePaths } = await dialog.showOpenDialog(window, {
-            properties: ['openDirectory'],
-        });
-        if (canceled) {
-            return;
-        } else {
-            return filePaths[0];
-        }
+    autoUpdater.on('update-downloaded', () => {
+        window.webContents.executeJavaScript('document.getElementById("updateAppButton").classList.remove("hidden")');
     });
+
+    setTimeout(() => {
+        autoUpdater.checkForUpdates();
+    }, 1000 * 60);
 });
 
 export function getApp() {
@@ -371,7 +381,8 @@ export async function getPacks() {
 
 export function validateSender(frame: WebFrameMain) {
     const url = new URL(frame.url);
-    if (url.origin === 'file://' || url.hostname === 'localhost') return true;
+    if (MAIN_WINDOW_VITE_DEV_SERVER_URL) return true;
+    if (url.protocol === 'file:') return true;
     return false;
 }
 

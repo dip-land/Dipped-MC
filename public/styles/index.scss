@@ -7,31 +7,157 @@
 }
 
 * {
-    transition: all 200ms;
     user-select: none;
     outline: none;
-}
-
-canvas,
-img {
-    image-rendering: optimizeSpeed;
-    image-rendering: -moz-crisp-edges;
-    image-rendering: -webkit-optimize-contrast;
-    image-rendering: -o-crisp-edges;
-    image-rendering: pixelated;
-    -ms-interpolation-mode: nearest-neighbor;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
 }
 
 html {
     color: white;
     box-sizing: border-box;
-    font-family: SF Pro Text, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif,
-        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-    scrollbar-gutter: stable both-edges;
 }
 
 body {
     background-color: var(--background);
+    margin: 0;
+    overflow: hidden;
+}
+
+#titleBar {
+    margin: 0;
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: var(--background-2);
+    border-bottom: 1px solid rgba(45, 49, 60, 255);
+    height: 32px;
+    z-index: 9999999999999999;
+    display: flex;
+    align-items: center;
+    font-size: 13.34px !important;
+
+    >img {
+        width: 20px;
+        height: 20px;
+        margin: 6px;
+    }
+
+    button {
+        height: 100%;
+        appearance: none;
+        border: none;
+        background: none;
+        color: rgb(138, 145, 165);
+        cursor: pointer;
+        transition: 200ms;
+
+        &:hover {
+            background-color: var(--background-4);
+            color: white;
+        }
+    }
+
+    .center {
+        height: 100%;
+        justify-self: center;
+    }
+
+    #end {
+        height: 100%;
+        position: relative;
+    }
+
+    #user {
+        color: rgb(138, 145, 165);
+        cursor: pointer;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        padding: 0 6px;
+
+        #userAvatar {
+            width: 20px;
+            height: 20px;
+            image-rendering: optimizeSpeed;
+            image-rendering: pixelated;
+            margin-right: 6px;
+        }
+
+        &:hover,
+        &.active {
+            background-color: var(--background-4);
+            color: white;
+        }
+    }
+
+    @keyframes update {
+        from {
+            color: hsl(147, 88%, 62%)
+        }
+
+        to {
+            color: hsl(34, 88%, 62%)
+        }
+    }
+
+    #updateAppButton {
+        color: hsl(147, 88%, 62%);
+        padding: 0 10px;
+        margin-right: 10px;
+        animation-name: update;
+        animation-duration: 2s;
+        animation-iteration-count: infinite;
+        animation-direction: alternate;
+        animation-timing-function: ease-in-out;
+    }
+
+    .windowButtons {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        height: 100%;
+
+        button {
+            padding: 0 12px;
+
+            &#appClose:hover {
+                background-color: rgba(255, 0, 0, 0.5);
+                color: white;
+            }
+        }
+    }
+
+    .dragZone {
+        app-region: drag;
+        height: 30px;
+        flex-grow: 1;
+
+        color: rgb(138, 145, 165);
+        display: flex;
+        align-items: center;
+    }
+
+    .popout {
+        top: 34px;
+        right: 0;
+        text-align: center;
+        transition: all 200ms !important;
+    }
+}
+
+#content {
+    width: 100vw;
+    height: calc(100vh - 30px);
+    overflow-x: auto;
+    scrollbar-gutter: stable both-edges;
+
+    &>* {
+        transition: all 200ms;
+    }
+}
+
+#contentMargin {
     max-width: 1300px;
     margin: auto;
     padding: 0 20px;
@@ -52,7 +178,7 @@ body {
     transform: rotate(180deg);
 }
 
-button {
+#content button {
     text-decoration: none;
     border: none;
     background-color: transparent;
@@ -60,107 +186,10 @@ button {
     cursor: pointer;
     color: rgb(138, 145, 165);
     font-weight: 600;
-}
 
-button:hover {
-    color: rgb(255, 255, 255);
-}
-
-nav {
-    align-items: center;
-    padding: 16px 0;
-    border-bottom: 1px solid var(--background-3);
-    width: 100%;
-    display: flex;
-    color: rgb(138, 145, 165);
-    font-size: 13px;
-    justify-content: space-between;
-    position: relative;
-    tab-size: 4;
-    z-index: 30;
-
-    #logo {
-        white-space: nowrap;
-        text-wrap: nowrap;
-        height: 29px;
-
-        img {
-            width: 29px;
-            height: 29px;
-        }
+    &:hover {
+        color: rgb(255, 255, 255);
     }
-
-    #center {
-        position: static;
-        z-index: 50;
-        top: 50px;
-        display: flex;
-        flex-direction: row;
-        font-weight: 500;
-        justify-content: center;
-        overflow: hidden;
-        gap: 12px;
-
-        button {
-            border-radius: 8px;
-            color: rgb(138, 145, 165);
-            cursor: pointer;
-            padding: 0.5rem 0.75rem;
-            transition: all cubic-bezier(0.4, 0, 0.2, 1) 150ms;
-            text-decoration: none;
-            line-height: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            font-weight: 400;
-
-            &:hover,
-            .active {
-                background-color: var(--background-3);
-                color: rgb(255, 255, 255);
-            }
-        }
-    }
-
-    #end {
-        display: flex;
-        justify-content: flex-end;
-    }
-
-    #user {
-        display: flex;
-        align-items: center;
-        cursor: pointer;
-        border-radius: 8px;
-        height: 29px;
-        color: white;
-
-        &:hover,
-        &.active {
-            background-color: var(--background-3);
-        }
-
-        canvas {
-            border-radius: 35%;
-            padding: 2px;
-        }
-
-        span {
-            padding-left: 0.5rem;
-        }
-
-        svg {
-            margin-left: 0.25rem;
-        }
-    }
-
-    .popout {
-        top: 3.1rem;
-        right: 0;
-        text-align: center;
-        transition: all 200ms !important;
-    }
-
 }
 
 .popout {
@@ -196,7 +225,7 @@ nav {
         text-overflow: ellipsis;
         white-space: nowrap;
         cursor: pointer;
-        font-weight: 400;
+        font-weight: 400 !important;
 
         &:hover {
             color: rgb(255, 255, 255);

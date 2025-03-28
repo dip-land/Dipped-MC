@@ -31,8 +31,11 @@ function getDate() {
 
 function stringify(args) {
     const date = new Date();
+    const hours = date.getHours() < 10 ? `0${date.getHours()}` : date.getHours();
+    const minutes = date.getMinutes() < 10 ? `0${date.getMinutes()}` : date.getMinutes();
+    const seconds = date.getSeconds() < 10 ? `0${date.getSeconds()}` : date.getSeconds();
     const ms = date.getMilliseconds() < 100 ? `0${date.getMilliseconds()}` : date.getMilliseconds();
-    return `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}.${ms} ` + args + '\n';
+    return `${hours}:${minutes}:${seconds}.${ms} ` + args + '\n';
 }
 
 export type LoggerOptions = { outputDir: string };

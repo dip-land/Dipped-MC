@@ -61,7 +61,12 @@ export type Pack<installed> = installed extends false
 declare global {
     interface Window {
         dmc: {
+            appClose: () => Promise<void>;
+            appMaximize: () => Promise<void>;
+            appMinimize: () => Promise<void>;
+            appUpdate: () => Promise<void>;
             deleteConfig: () => Promise<'success' | Error>;
+            devTools: (shouldOpen: boolean) => void;
             editConfig: (newConfig: Config) => Promise<Config>;
             fetchPacks: () => Promise<void>;
             getConfig: () => Promise<Config>;
@@ -78,6 +83,7 @@ declare global {
             pathJoin: (...args: string[]) => Promise<string>;
             playPack: (id: string) => Promise<void>;
             reload: () => Promise<void>;
+            selectFolder: (type: 'pack') => string;
 
             createNotification: (id: string, data: { title: string; body: string; progress?: number }) => void;
             deleteNotification: (id: string) => void;
@@ -86,7 +92,6 @@ declare global {
             preUninstall: (packID: string) => Promise<void>;
             preUpdate: (packID: string) => Promise<void>;
             reloadPacks: (offline: boolean) => Promise<void>;
-            selectFolder: (type: 'pack') => string;
             setInstalling: (packID: string) => void;
             setUninstalling: (packID: string) => void;
             setUpdating: (packID: string) => void;
