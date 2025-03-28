@@ -1,7 +1,7 @@
 {
   "name": "dipped_mc",
   "productName": "Dipped MC",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A Minecraft Launcher",
   "main": ".vite/build/index.js",
   "scripts": {
