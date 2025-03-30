@@ -17,12 +17,12 @@ window.addEventListener('load', async () => {
     const config = await window.dmc.getConfig();
     const themeButtons = document.getElementsByClassName('themeButton');
     const themeStyle = document.getElementById('theme');
-    themeStyle.setAttribute('href', `/styles/${config.theme ?? 'default'}.css`);
+    themeStyle.setAttribute('href', `./styles/${config.theme ?? 'default'}.css`);
 
     for (const button of themeButtons) {
         button.addEventListener('click', async () => {
             const theme = button.classList.item(1);
-            themeStyle.setAttribute('href', `/styles/${theme}.css`);
+            themeStyle.setAttribute('href', `./styles/${theme}.css`);
             const config = await window.dmc.getConfig();
             config.theme = theme;
             window.dmc.editConfig(config);
@@ -38,6 +38,7 @@ async function loadSettings() {
     const defaultInstallLocation = document.getElementById('defaultInstallLocation');
     defaultInstallLocation.value = `${config.packPath}`;
     const defaultPackRam = document.getElementById('defaultPackRam');
+    defaultPackRam.innerHTML = '';
     const ramValues = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
     for (const value of ramValues) {
         const option = document.createElement('option');
