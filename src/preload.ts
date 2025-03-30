@@ -10,20 +10,24 @@ contextBridge.exposeInMainWorld('dmc', {
     appUpdate: () => ipcRenderer.invoke('app-update'),
     deleteConfig: () => ipcRenderer.invoke('delete-config'),
     devTools: (shouldOpen: boolean) => ipcRenderer.invoke('devtools', shouldOpen),
-    editConfig: (newConfig: Config) => ipcRenderer.invoke('edit-config', newConfig) as Promise<Config>,
+    editConfig: (newConfig: Config) => ipcRenderer.invoke('edit-config', newConfig),
+    editPackConfig: (id: string, data: { path?: string; ram?: number }) => ipcRenderer.invoke('edit-pack-config', id, data),
     fetchPacks: () => ipcRenderer.invoke('fetch-packs'),
     getConfig: () => ipcRenderer.invoke('get-config') as Promise<Config>,
     getInstallingPacks: () => ipcRenderer.invoke('get-installing-packs'),
     getPack: (id: string) => ipcRenderer.invoke('get-pack', id),
     getPacks: () => ipcRenderer.invoke('get-packs'),
+    getStatus: () => ipcRenderer.invoke('get-status'),
     getUninstallingPacks: () => ipcRenderer.invoke('get-uninstalling-packs'),
     getUser: () => ipcRenderer.invoke('get-user'),
-    loadIcon: (id: string) => ipcRenderer.invoke('load-icon', id),
+    getVersions: () => ipcRenderer.invoke('get-versions'),
+    loadIcon: (id: string, status: { api: boolean; network: boolean }) => ipcRenderer.invoke('load-icon', id, status),
     login: () => ipcRenderer.invoke('login'),
     logout: () => ipcRenderer.invoke('logout'),
+    movePack: (id: string, path: string) => ipcRenderer.invoke('move-pack', id, path),
     openFolder: (path: string) => ipcRenderer.invoke('open-folder', path),
     openURL: (url: string) => ipcRenderer.invoke('open-url', url),
-    pathJoin: (...args: string[]) => ipcRenderer.invoke('load-icon', ...args),
+    pathJoin: (...args: string[]) => ipcRenderer.invoke('path-join', ...args),
     playPack: (id: string) => ipcRenderer.invoke('play-pack', id),
     reload: () => ipcRenderer.invoke('reload'),
     selectFolder: (type: 'pack') => ipcRenderer.invoke('dialog:openDirectory', type),
@@ -31,6 +35,7 @@ contextBridge.exposeInMainWorld('dmc', {
     createNotification,
     deleteNotification,
     openPackCtxMenu,
+    openSettingsToPack,
     preInstall,
     preUninstall,
     preUpdate,
@@ -41,7 +46,9 @@ contextBridge.exposeInMainWorld('dmc', {
     updateNotification,
 });
 
-async function reloadPacks(offline: boolean) {
+async function reloadPacks() {
+    const status = (await ipcRenderer.invoke('get-status')) as { api: boolean; network: boolean };
+    const offline = !status.api;
     const packs = (await ipcRenderer.invoke('get-packs')) as Array<Pack<boolean>>;
     const packsSection = document.getElementById('servers');
     packsSection.innerHTML = '';
@@ -55,13 +62,13 @@ async function reloadPacks(offline: boolean) {
         const worldDownload = false;
         const version = updatable ? `v.${pack.localVersion} ->` : offline ? `v.${pack.localVersion}` : `v.${pack.serverVersion}`;
         const newVersion = updatable ? `v.${pack.serverVersion}` : '';
+        const image = await ipcRenderer.invoke('load-icon', pack.id, status);
         packsSection.innerHTML += `<div id="${pack.id}" data-id="${pack.id}" class="server ${pack.installed ? 'downloaded' : 'notDownloaded'} ${updatable ? 'update' : ''} ${
             worldDownload ? 'world' : ''
         }">
-                    <div data-id="${pack.id}" class="serverBackground" style="background-image: url(&quot;https://dipped.dev/api/minecraft/icons/${pack.id}&quot;)"></div>
-                    <div data-id="${pack.id}" class="serverBackgroundOverlay"></div>
+                    <div data-id="${pack.id}" class="serverBackground" style="background-image: url(&quot;${image}&quot;)"></div>
                     <div data-id="${pack.id}" class="serverContent">
-                        <img class="serverIcon" src="https://dipped.dev/api/minecraft/icons/${pack.id}" width="140px" height="140px" alt="Pack Icon">
+                        <img class="serverIcon" src="${image}" width="140px" height="140px" alt="Pack Icon">
                         <span class="serverName">${pack.name}</span>
                     </div>
                     <div data-id="${pack.id}" class="serverButtons">
@@ -95,6 +102,13 @@ async function reloadPacks(offline: boolean) {
     }
 }
 
+function openSettingsToPack(id: string) {
+    document.getElementById('openSettings').click();
+    setTimeout(() => {
+        window.location.href = `#${id}_Settings`;
+    }, 250);
+}
+
 async function preInstall(packID: string) {
     const config: Config = await ipcRenderer.invoke('get-config');
     const packs = await ipcRenderer.invoke('get-packs');
@@ -116,7 +130,7 @@ async function preInstall(packID: string) {
 
     changeLocation.onclick = async () => {
         const folder = await ipcRenderer.invoke('dialog:openDirectory', 'pack');
-        if (folder === undefined) return;
+        if (!folder) return;
         currentFolder.value = await ipcRenderer.invoke('path-join', folder, pack.identifier);
     };
 
@@ -134,8 +148,8 @@ async function preInstall(packID: string) {
 
 function setInstalling(packID: string) {
     const pack = document.getElementById(packID);
-    const button = pack.children[3].children[2] as HTMLButtonElement;
-    const infoText = pack.children[4].children[0];
+    const button = pack.children[2].children[2] as HTMLButtonElement;
+    const infoText = pack.children[3].children[0];
     button.style.background = '#1e4d19';
     button.innerText = 'Installing';
     infoText.innerHTML = 'Installing';
@@ -171,8 +185,8 @@ async function preUninstall(packID: string, offline: boolean) {
 
 function setUninstalling(packID: string) {
     const pack = document.getElementById(packID);
-    const button = pack.children[3].children[0] as HTMLButtonElement;
-    const infoText = pack.children[4].children[0];
+    const button = pack.children[2].children[0] as HTMLButtonElement;
+    const infoText = pack.children[3].children[0];
     button.style.background = '#952f2f';
     button.innerText = 'Uninstalling';
     infoText.innerHTML = 'Uninstalling';
@@ -203,13 +217,13 @@ async function preUpdate(packID: string) {
 
 function setUpdating(packID: string) {
     const pack = document.getElementById(packID);
-    const button = pack.children[3].children[0] as HTMLButtonElement;
-    const infoText = pack.children[4].children[0];
+    const button = pack.children[2].children[0] as HTMLButtonElement;
+    const infoText = pack.children[3].children[0];
     button.style.background = '#1e4d19';
     button.innerText = 'Updating';
     infoText.innerHTML = 'Updating';
     button.style.pointerEvents = 'none';
-    pack.children[3].children[1].remove();
+    pack.children[2].children[1].remove();
 }
 
 function createNotification(id: string, data: { title: string; body: string; progress?: number }) {
@@ -332,6 +346,7 @@ async function openPackCtxMenu(options: { packID: string; posX: number; posY: nu
         openFolderButton.classList.remove('hidden');
         openFolderButton.setAttribute('onclick', `window.dmc.openFolder('${packDir}')`);
         settingsButton.classList.remove('hidden');
+        settingsButton.setAttribute('onclick', `window.dmc.openSettingsToPack('${options.packID}')`);
     }
     if (packElement.classList.contains('notDownloaded')) {
         installButton.classList.remove('hidden');

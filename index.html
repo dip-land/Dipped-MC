@@ -4,7 +4,9 @@
     <head>
         <meta charset="UTF-8" />
         <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <link id="theme" rel="stylesheet" type="text/css" href="/styles/default.css" />
         <link rel="stylesheet" type="text/css" href="/styles/index.css" />
+        <link rel="stylesheet" type="text/css" href="/styles/themeButton.css" />
         <!-- https: //developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
         <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://dipped.dev https://*.dipped.dev" />  -->
     </head>
@@ -15,8 +17,8 @@
             <div class="dragZone">Dipped MC</div>
             <div id="resizer" class="dragZone"></div>
             <div class="center">
-                <button>Modpacks</button>
-                <button>Settings</button>
+                <button id="openModpacks">Modpacks</button>
+                <button id="openSettings">Settings</button>
             </div>
             <div class="dragZone"></div>
             <div id="end">
@@ -29,32 +31,32 @@
                 <div class="popout hidden" id="nav_popout">
                     <div id="logout" onclick="window.dmc.logout()">Logout</div>
                 </div>
+                <button id="updateAppButton" title="Update Available" onclick="window.dmc.appUpdate()" class="hidden">
+                    <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 9.0000019 10.750252">
+                    <defs
+                        id="defs2" />
+                    <g
+                        transform="matrix(0.01666667,0,0,-0.01666667,-3.5000006,13.375128)"
+                        fill="currentColor"
+                        id="g2">
+                        <g
+                        id="g3"
+                        transform="translate(0,202.5)">
+                        <path
+                            d="m 450,161.0075 c -52.62225,55.03345 -105.82835,109.49906 -159,164 -14.97037,-15.37329 -30.49689,-30.17094 -46,-45 l 235,-235 235,235 c -15.7018,14.62524 -30.83026,29.83026 -46,45 -53.37732,-54.30143 -106.172,-109.16588 -159,-164 v 439 h -60 z"
+                            id="path1" />
+                        <path
+                            d="m 210,-45.0075 h 540 v 60 H 210 Z"
+                            id="path2" />
+                        </g>
+                    </g>
+                    </svg>
+                </button>
             </div>
             <div class="dragZone" style="max-width: 20px;"></div>
-            <button id="updateAppButton" title="Update Available" onclick="window.dmc.appUpdate()" class="hidden">
-                <svg
-                width="16"
-                height="16"
-                viewBox="0 0 9.0000019 10.750252">
-                <defs
-                    id="defs2" />
-                <g
-                    transform="matrix(0.01666667,0,0,-0.01666667,-3.5000006,13.375128)"
-                    fill="currentColor"
-                    id="g2">
-                    <g
-                    id="g3"
-                    transform="translate(0,202.5)">
-                    <path
-                        d="m 450,161.0075 c -52.62225,55.03345 -105.82835,109.49906 -159,164 -14.97037,-15.37329 -30.49689,-30.17094 -46,-45 l 235,-235 235,235 c -15.7018,14.62524 -30.83026,29.83026 -46,45 -53.37732,-54.30143 -106.172,-109.16588 -159,-164 v 439 h -60 z"
-                        id="path1" />
-                    <path
-                        d="m 210,-45.0075 h 540 v 60 H 210 Z"
-                        id="path2" />
-                    </g>
-                </g>
-                </svg>
-            </button>
             <div class="windowButtons">
                 <button onclick="window.dmc.appMinimize()">
                     <svg width="12" height="12" viewBox="0 0 12 12"><rect fill="currentColor" width="10" height="1" x="1" y="6"></rect></svg>
@@ -69,10 +71,6 @@
             
         </div> 
         <div id="content">
-            <div id="debug" class="hidden">
-                <div id="dev_tools" class="hidden"><button tabindex="-1" id="delete_config">Delete Config</button></div>
-                <pre id="debugConfig"></pre>
-            </div>
             <div id="contentMargin">
                 <div id="offlineWarning" class="hidden">
                     <h2>Offline Warning</h2>
@@ -80,7 +78,7 @@
                     <button onclick="window.dmc.reload()">Reload App</button>
                     <button onclick="this.parentNode.classList.add('hidden')">Hide Warning</button>
                 </div>
-                <div id="modpacks" class="">
+                <div id="modpacks">
                     <div id="filter">
                         <label for="sort">Sort: </label>
                         <select name="sort" id="sort">
@@ -114,16 +112,62 @@
                         <button>Modrinth</button>
                     </div>
                 </div>
-                <div id="settings">
-                    <aside></aside>
-                    <div></div>
+                <div id="settings" class="hidden">
+                    <aside id="settingsMenuBar">
+                        <a href="#appSettings"><img src="/favicon_x64.png"></a>
+                    </aside>
+                    <div id="settingsContent">
+                        <section id="appSettings">
+                            <br>
+                            <h1>App Settings</h1>
+                            <hr class="thin extraMargin">
+                            <h3>Theme</h3>
+                            <button class="themeButton default">
+                                <div>
+                                    <div class="themeAccentColor"></div>
+                                    <div class="themeFonts">
+                                        <div class="themeFont1Color"></div>
+                                        <div class="themeFont2Color"></div>
+                                    </div>
+                                </div>
+                                Default
+                            </button>
+                            <button class="themeButton dark">
+                                <div>
+                                    <div class="themeAccentColor"></div>
+                                    <div class="themeFonts">
+                                        <div class="themeFont1Color"></div>
+                                        <div class="themeFont2Color"></div>
+                                    </div>
+                                </div>
+                                Dark
+                            </button>
+                            <button class="themeButton light">
+                                <div>
+                                    <div class="themeAccentColor"></div>
+                                    <div class="themeFonts">
+                                        <div class="themeFont1Color"></div>
+                                        <div class="themeFont2Color"></div>
+                                    </div>
+                                </div>
+                                Light
+                            </button>
+                            <h3>Pack Defaults</h3>
+                            <label class="locationLabel" for="defaultInstallLocation">Default Install Location</label>
+                            <input id="defaultInstallLocation" type="text" name="defaultInstallLocation" disabled>
+                            <button id="changeDefaultLocation" class="basicButton">Change</button>
+                            <button id="openDefaultLocation" class="basicButton">Open</button>
+                            <label class="ramLabel" for="defaultRam">Default Pack Ram</label>
+                            <select id="defaultPackRam" name="defaultRam"></select>
+                        </section>
+                    </div>
                 </div>
                 <div id="installSettings" class="confirmation hidden">
                     <div class="content">
                         <h1>Install Settings</h1>
                         <label for="installLocation">Install Location</label><br>
                         <input id="installLocation" type="text" name="installLocation" disabled>
-                        <button id="changeLocation">Change</button>
+                        <button id="changeLocation" class="basicButton">Change</button>
                         <br>
                         <label for="ram">Pack Ram <i>(GB)</i></label>
                         <br>
@@ -167,9 +211,19 @@
                     </div>
                 </div>
                 <div id="notifications"></div>
+                <footer>
+                    <hr>
+                    <div>App Version: <b id="appVersion"></b></div>
+                    <div>Chrome Version: <b id="chromeVersion"></b></div>
+                    <div>Electron Version: <b id="electronVersion"></b></div>
+                    <div>Node Version: <b id="nodeVersion"></b></div>
+                    <div>V8 Version: <b id="v8Version"></b></div>
+                    <button id="logsButton">View Logs Folder</button>
+                </footer>
             </div>
         </div>
         <script src="/scripts/main.js"></script>
+        <script src="/scripts/settings.js"></script>
     </body>
 
 </html>

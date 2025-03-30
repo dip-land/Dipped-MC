@@ -1,30 +1,8 @@
 window.onload = async () => {
-    const packs = await window.dmc.getPacks();
-    let offline = false;
-    if (!packs.find((pack) => pack.installed === false)) offline = true;
+    let offline = !(await window.dmc.getStatus()).api;
 
-    window.dmc.reloadPacks(offline);
-
-    const delConfig = document.getElementById('delete_config');
-    delConfig.addEventListener('click', async () => {
-        window.dmc.deleteConfig();
-    });
-
-    let devOptions = false;
-    const devMenu = document.getElementById('dev_tools');
-    const map = {}; // You could also use an array
-    onkeydown = onkeyup = async function (e) {
-        map[e.key] = e.type == 'keydown';
-        if (map['Shift'] && map['Control'] && map['I']) {
-            devOptions = !devOptions;
-            devMenu.classList.toggle('hidden');
-            const debug = document.getElementById('debug');
-            debug.classList.toggle('hidden');
-            const debugConfig = document.getElementById('debugConfig');
-            debugConfig.innerText = JSON.stringify(await this.dmc.getConfig(), null, 4);
-            window.dmc.devTools(!debug.classList?.contains('hidden'));
-        }
-    };
+    window.dmc.reloadPacks();
+    getVersions();
 
     const user = await window.dmc.getUser();
     const container = document.getElementById('user');
@@ -55,7 +33,7 @@ window.onload = async () => {
             window.dmc.logout();
             window.location.reload();
         });
-    } else if (user.status === 'offline') window.dmc.reloadPacks(true);
+    } else if (user.status === 'offline') window.dmc.reloadPacks();
 
     const contextMenu = document.getElementById('context');
 
@@ -79,15 +57,24 @@ window.onload = async () => {
         }
     });
 
+    document.getElementById('logsButton').setAttribute('onclick', `window.dmc.openFolder("${(await window.dmc.getConfig()).configPath.replaceAll('\\', '/')}/logs")`);
+
     setInterval(() => {
         window.dmc.fetchPacks();
-        window.dmc.reloadPacks(offline);
+        window.dmc.reloadPacks();
     }, 1000 * 60 * 15);
 };
 
-const resizer = document.getElementById('resizer');
+async function getVersions() {
+    const versions = await window.dmc.getVersions();
+    document.getElementById('appVersion').innerHTML = versions.app;
+    document.getElementById('chromeVersion').innerHTML = versions.chrome;
+    document.getElementById('electronVersion').innerHTML = versions.electron;
+    document.getElementById('nodeVersion').innerHTML = versions.node;
+    document.getElementById('v8Version').innerHTML = versions.v8;
+}
+
 window.addEventListener('resize', () => {
-    resizer.setAttribute('style', `max-width: ${document.getElementById('end').getBoundingClientRect().width + 20}px;`);
     document.getElementById('context').classList.add('hidden');
     if (document.getElementById('user').classList.contains('active')) {
         document.getElementById('nav_popout').classList.toggle('hidden');
@@ -95,6 +82,10 @@ window.addEventListener('resize', () => {
     }
 });
 
-setTimeout(() => {
-    resizer.setAttribute('style', `max-width: ${document.getElementById('end').getBoundingClientRect().width + 20}px;`);
-}, 400);
+const resizeObserver = new ResizeObserver((entries) => {
+    for (const entry of entries) {
+        document.getElementById('resizer').setAttribute('style', `max-width: ${entry.contentRect.width + 20}px;`);
+    }
+});
+
+resizeObserver.observe(document.getElementById('end'));

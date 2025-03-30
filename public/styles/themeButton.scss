@@ -1,0 +1,91 @@
+.themeButton {
+    min-width: 200px;
+    padding: 10px;
+    text-align: left;
+    border-radius: 5px;
+    margin-right: 1rem;
+    border: 1px solid !important;
+
+    .themeAccentColor {
+        width: 32px;
+        height: 32px;
+        border-radius: 5px;
+    }
+
+    .themeFont1Color {
+        width: 100%;
+        height: calc((32px / 2) - 4px);
+        border-radius: 5px;
+    }
+
+    .themeFont2Color {
+        width: 80%;
+        height: calc((32px / 2) - 4px);
+        border-radius: 5px;
+    }
+
+    >div {
+        margin-bottom: 0.5rem;
+        display: flex;
+        gap: 8px;
+
+        .themeFonts {
+            flex-grow: 1;
+            display: flex;
+            gap: 4px;
+            flex-direction: column;
+        }
+    }
+
+    &.default {
+        background-color: rgb(25, 28, 36) !important;
+        border-color: rgb(45, 49, 60) !important;
+
+        .themeAccentColor {
+            background-color: #1c3066;
+        }
+
+        .themeFont1Color {
+            background-color: white;
+        }
+
+        .themeFont2Color {
+            background-color: rgb(138, 145, 165);
+        }
+    }
+
+    &.dark {
+        background-color: rgb(25, 25, 25) !important;
+        border-color: rgb(35, 35, 35) !important;
+
+        .themeAccentColor {
+            background-color: #1c3066;
+        }
+
+        .themeFont1Color {
+            background-color: white;
+        }
+
+        .themeFont2Color {
+            background-color: rgb(145, 145, 145);
+        }
+    }
+
+    &.light {
+        background-color: rgb(230, 230, 235) !important;
+        color: black !important;
+        border-color: rgb(200, 200, 205) !important;
+
+        .themeAccentColor {
+            background-color: #1c3066;
+        }
+
+        .themeFont1Color {
+            background-color: black;
+        }
+
+        .themeFont2Color {
+            background-color: rgb(70, 70, 70);
+        }
+    }
+}

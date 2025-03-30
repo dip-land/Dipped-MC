@@ -10,7 +10,7 @@ import { Config, LocalPack, Pack, WebPack } from './types';
 import { Logger } from './classes/logger';
 
 export const apiServer = 'https://dipped.dev/api';
-const updateServer = 'https://dipped-mc-updater.vercel.app';
+const updateServer = 'https://launcher.dipped.dev';
 const feed = `${updateServer}/update/${process.platform}/${app.getVersion()}`;
 
 autoUpdater.setFeedURL({ url: feed });
@@ -26,6 +26,7 @@ const defaultConfig: Config = {
     configPath: defaultConfigPath,
     installed: Date.now(),
     packPath: defaultPackPath,
+    theme: 'default',
     ram: Math.floor(os.totalmem() / 2 / 1e6 > 12000 ? 12000 : os.totalmem() / 2 / 1e6) / 1000,
     packs: [],
 };
@@ -111,7 +112,7 @@ const createWindow = () => {
         },
     });
 
-    //mainWindow.removeMenu();
+    if (app.isPackaged) mainWindow.removeMenu();
 
     const secondaryWindow = new BrowserWindow({
         title: `Dipped MC`,
@@ -169,11 +170,13 @@ import appUpdateEvent from './events/appUpdate';
 import deleteConfigEvent from './events/deleteConfig';
 import devToolsEvent from './events/devTools';
 import editConfigEvent from './events/editConfig';
+import editPackConfigEvent from './events/editPackConfig';
 import fetchPacksEvent from './events/fetchPacks';
 import getConfigEvent from './events/getConfig';
 import getInstallingPacksEvent from './events/getInstallingPacks';
 import getPackEvent from './events/getPack';
 import getPacksEvent from './events/getPacks';
+import getStatusEvent from './events/getStatus';
 import getUninstallingPacksEvent from './events/getUninstallingPacks';
 import getUpdatingPacksEvent from './events/getUpdatingPacks';
 import getUserEvent from './events/getUser';
@@ -181,6 +184,7 @@ import installPackEvent from './events/installPack';
 import loadIconEvent from './events/loadIcon';
 import loginEvent from './events/login';
 import logoutEvent from './events/logout';
+import movePackEvent from './events/movePack';
 import openDirectoryEvent from './events/openDirectory';
 import openFolderEvent from './events/openFolder';
 import openUrlEvent from './events/openUrl';
@@ -200,11 +204,13 @@ app.on('ready', async () => {
     ipcMain.handle('devtools', devToolsEvent.fn);
     ipcMain.handle('dialog:openDirectory', openDirectoryEvent.fn);
     ipcMain.handle('edit-config', editConfigEvent.fn);
+    ipcMain.handle('edit-pack-config', editPackConfigEvent.fn);
     ipcMain.handle('fetch-packs', fetchPacksEvent.fn);
     ipcMain.handle('get-config', getConfigEvent.fn);
     ipcMain.handle('get-installing-packs', getInstallingPacksEvent.fn);
     ipcMain.handle('get-pack', getPackEvent.fn);
     ipcMain.handle('get-packs', getPacksEvent.fn);
+    ipcMain.handle('get-status', getStatusEvent.fn);
     ipcMain.handle('get-uninstalling-packs', getUninstallingPacksEvent.fn);
     ipcMain.handle('get-updating-packs', getUpdatingPacksEvent.fn);
     ipcMain.handle('get-user', getUserEvent.fn);
@@ -212,6 +218,7 @@ app.on('ready', async () => {
     ipcMain.handle('load-icon', loadIconEvent.fn);
     ipcMain.handle('login', loginEvent.fn);
     ipcMain.handle('logout', logoutEvent.fn);
+    ipcMain.handle('move-pack', movePackEvent.fn);
     ipcMain.handle('open-folder', openFolderEvent.fn);
     ipcMain.handle('open-url', openUrlEvent.fn);
     ipcMain.handle('path-join', pathJoinEvent.fn);
@@ -225,8 +232,18 @@ app.on('ready', async () => {
     });
 
     setTimeout(() => {
-        autoUpdater.checkForUpdates();
-    }, 1000 * 60);
+        if (app.isPackaged) autoUpdater.checkForUpdates();
+    }, 1000 * 15);
+
+    ipcMain.handle('get-versions', () => {
+        return {
+            app: app.getVersion(),
+            electron: process.versions.electron,
+            chrome: process.versions.chrome,
+            node: process.versions.node,
+            v8: process.versions.v8,
+        };
+    });
 });
 
 export function getApp() {
@@ -244,8 +261,14 @@ export function editConfig(newConfig: Config) {
         if (err) throw err;
         logger.log('Config File Edited.');
         config = newConfig;
-        return config;
     });
+}
+export function editPackConfig(id: string, data: { path?: string; ram?: number }) {
+    const config = getConfig();
+    const packIndex = config.packs.findIndex((p) => p.id === id);
+    if (data.ram) config.packs[packIndex].ram = data.ram;
+    if (data.path) config.packs[packIndex].path = data.path;
+    editConfig(config);
 }
 
 export function getKey() {
@@ -320,7 +343,7 @@ export async function fetchPacks() {
         });
     }
     try {
-        webPacks = (await axios(`${apiServer}/minecraft/servers`, { signal: newAbortSignal(10000) })).data.data as Array<WebPack>;
+        webPacks = ((await axios(`${apiServer}/minecraft/servers`, { signal: newAbortSignal(10000) })).data.data as Array<WebPack>) ?? [];
     } catch (error) {
         return;
     }

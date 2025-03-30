@@ -13,7 +13,7 @@ export default new Event(async (event, options: { packID: string; deleteSettings
     addUninstalling(options.packID);
     const packDir = config.packs.find((pack) => pack.id === options.packID)?.path;
     const pack = packs.find((pack) => pack.id === options.packID);
-    await window.webContents.executeJavaScript(`window.dmc.createNotification("${options.packID}_uninstall", { title: "Uninstalling", body: '${pack.name}'})`);
+    await window.webContents.executeJavaScript(`window.dmc.createNotification("${options.packID}_uninstall", { title: "Uninstalling", body: "${pack.name}"})`);
     if (!packDir || !pack) return false;
     if (!options.deleteSettings) {
         if (!existsSync(path.join(config.packPath, 'uninstalled', options.packID))) mkdirSync(path.join(config.packPath, 'uninstalled', options.packID), { recursive: true });
@@ -38,7 +38,7 @@ export default new Event(async (event, options: { packID: string; deleteSettings
             window.webContents.executeJavaScript(`window.dmc.reloadPacks(${options.offline})`);
             removeUninstalling(pack.id);
             window.webContents
-                .executeJavaScript(`window.dmc.updateNotification("${options.packID}_uninstall", { title: "Uninstall Successful", body: '${pack.name} Uninstalled'})`)
+                .executeJavaScript(`window.dmc.updateNotification("${options.packID}_uninstall", { title: "Uninstall Successful", body: "${pack.name} Uninstalled"})`)
                 .then(() => {
                     setTimeout(() => window.webContents.executeJavaScript(`window.dmc.deleteNotification("${options.packID}_uninstall")`), 3000);
                 });
