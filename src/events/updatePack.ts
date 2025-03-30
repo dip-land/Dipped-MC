@@ -54,7 +54,7 @@ async function updatePack(window: Electron.BrowserWindow, pack: Pack<boolean>, d
                     rm(updateFilePath, () => {
                         window.setProgressBar(0);
                         window.webContents.executeJavaScript(
-                            `window.dmc.createNotification("${pack.id}_complete", { title: "Update Successful", body: '"${pack.name}" is now ready to play'})`
+                            `window.dmc.createNotification("${pack.id}_complete", { title: "Update Successful", body: \`"${pack.name}" is now ready to play\`})`
                         );
                         window.webContents.executeJavaScript(`window.dmc.deleteNotification("${pack.id}_update")`);
                         window.webContents.executeJavaScript(`window.dmc.reloadPacks(false)`);

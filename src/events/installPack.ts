@@ -71,7 +71,7 @@ async function installPack(pack: Pack<boolean>, config: Config, data: string) {
                     rm(path.join(config.packPath, `${pack.identifier}.zip`), () => {
                         window.setProgressBar(0);
                         window.webContents.executeJavaScript(
-                            `window.dmc.createNotification("${pack.id}_complete", { title: "Install Successful", body: '"${pack.name}" is now ready to play'})`
+                            `window.dmc.createNotification("${pack.id}_complete", { title: "Install Successful", body: \`"${pack.name}" is now ready to play\`})`
                         );
                         window.webContents.executeJavaScript(`window.dmc.deleteNotification("${pack.id}")`);
                         window.webContents.executeJavaScript(`window.dmc.reloadPacks(false)`);

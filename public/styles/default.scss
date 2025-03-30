@@ -1,0 +1,27 @@
+:root {
+    --background-1: rgb(15, 18, 26);
+    --background-2: rgb(25, 28, 36);
+    --background-3: rgb(33, 36, 45);
+    --background-4: rgb(45, 49, 60);
+    scrollbar-color: var(--background-3) var(--background-1);
+
+    --font-color-1: white;
+    --font-color-2: rgb(138, 145, 165);
+
+    --border-color: rgb(45, 49, 60);
+    --shadow-color: rgba(0, 0, 0, 0.5);
+
+    --red: rgb(236, 84, 84);
+    --orange: rgb(236, 145, 84);
+    --yellow: rgb(236, 226, 84);
+    --green: rgb(127, 236, 84);
+    --blue: rgb(84, 124, 236);
+    --purple: rgb(150, 84, 236);
+
+    --accent-1: #1c3066;
+    --accent-transparent: rgba(28, 48, 102, 0.5);
+    --accent-2: #19274d;
+
+    --info-color: hsl(59, 100%, 60%);
+    --version-newVersion-color: hsl(118, 100%, 60%);
+}
