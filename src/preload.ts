@@ -355,13 +355,13 @@ async function openPackCtxMenu(options: { packID: string; posX: number; posY: nu
     if (!options.offline) {
         secondHR.classList.remove('hidden');
         websiteButton.classList.remove('hidden');
-        websiteButton.setAttribute('onclick', `window.dmc.openURL('https://dipped.dev/minecraft/${pack.identifier}')`);
+        websiteButton.setAttribute('onclick', `window.dmc.openURL("https://dipped.dev/minecraft/${pack.identifier}")`);
         if (pack.link.type === 'curseforge') {
             curseforgeButton.classList.remove('hidden');
-            curseforgeButton.setAttribute('onclick', `window.dmc.openURL('${pack.link.url}')`);
+            curseforgeButton.setAttribute('onclick', `window.dmc.openURL("${pack.link.url}")`);
         } else {
             modrinthButton.classList.remove('hidden');
-            modrinthButton.setAttribute('onclick', `window.dmc.openURL('${pack.link.url}')`);
+            modrinthButton.setAttribute('onclick', `window.dmc.openURL("${pack.link.url}")`);
         }
     }
 
