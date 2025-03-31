@@ -3,6 +3,7 @@ window.onload = async () => {
 
     window.dmc.reloadPacks();
     getVersions();
+    if (offline) document.getElementById('openServers').remove();
 
     const user = await window.dmc.getUser();
     const container = document.getElementById('user');
