@@ -15,15 +15,21 @@ jobs:
       uses: actions/setup-node@v4.3.0
       with:
           node-version: '23.9.0'
-    - run: npm install
     - run: echo ("VERSION=" + (node -p "require('./package.json').version")) >> $env:GITHUB_ENV
+    - run: npm install
+    - run: |
+            if ("${{github.ref_name}}" -eq "dev") {
+              echo ("NAME=" + "v${{env.VERSION}}_" + ([DateTimeOffset]::UtcNow.ToUnixTimeSeconds())) >> $env:GITHUB_ENV
+            } elseif ("${{github.ref_name}}" -eq "master") {
+              echo ("NAME=" + "v${{env.VERSION}}") >> $env:GITHUB_ENV
+            }
     - run: npm run build:win
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
       with:
         file: dist/dipped_mc-${{ env.VERSION }}-setup.exe
-        release_name: v${{ env.VERSION }}
-        tag: v${{ env.VERSION }}
+        release_name: ${{ env.NAME }} 
+        tag: ${{ env.NAME }} 
         overwrite: true
         file_glob: true
         make_latest: ${{ env.LATEST }}
