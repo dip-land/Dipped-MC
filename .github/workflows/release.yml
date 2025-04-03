@@ -8,6 +8,7 @@ jobs:
   run:
     runs-on: windows-latest
     steps:
+    - run: echo ("LATEST=" + ("${{github.ref_name}}" -eq "master")) >> $env:GITHUB_ENV
     - run: echo ("PRERELEASE=" + ("${{github.ref_name}}" -eq "dev")) >> $env:GITHUB_ENV
     - uses: actions/checkout@v4
     - name: Setup Node.js environment
@@ -16,7 +17,6 @@ jobs:
           node-version: '23.9.0'
     - run: npm install
     - run: echo ("VERSION=" + (node -p "require('./package.json').version")) >> $env:GITHUB_ENV
-    - run: echo ${{ env.VERSION }} ${{ env.PRERELEASE }}
     - run: npm run build:win
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
@@ -26,4 +26,5 @@ jobs:
         tag: v${{ env.VERSION }}
         overwrite: true
         file_glob: true
+        make_latest: ${{ env.LATEST }}
         prerelease: ${{ env.PRERELEASE }}
