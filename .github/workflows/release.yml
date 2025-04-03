@@ -34,4 +34,3 @@ jobs:
         file_glob: true
         make_latest: ${{ env.LATEST }}
         prerelease: ${{ env.PRERELEASE }}
-        promote: ${{ env.PRERELEASE }}
