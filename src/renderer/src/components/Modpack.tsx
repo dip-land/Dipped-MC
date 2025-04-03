@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Pack } from '../../../main/types';
-import PackContext from './PackContext';
 
 export default function Modpack({ pack, offline }: { pack: Pack<boolean>; offline: boolean }) {
   const [image, setImage] = useState('');

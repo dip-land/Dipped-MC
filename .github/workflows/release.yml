@@ -14,12 +14,13 @@ jobs:
           node-version: '23.9.0'
     - run: npm install
     - run: echo ("VERSION=" + (node -p "require('./package.json').version")) >> $env:GITHUB_ENV
-    - run: npm run make
+    - run: npm run build:win
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
       with:
-        file: out/make/squirrel.windows/x64/*
+        file: dist/dipped_mc-${{ env.VERSION }}-setup.exe
         release_name: v${{ env.VERSION }}
         tag: v${{ env.VERSION }}
         overwrite: true
         file_glob: true
+        prerelease: true
