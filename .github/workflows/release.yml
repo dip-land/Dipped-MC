@@ -25,7 +25,7 @@ jobs:
             }
     - run: npm run build:win
     - name: Upload binaries to release
-      uses: dip-land/action-gh-release@v1
+      uses: dip-land/action-gh-release@v2
       with:
         files: dist/dipped_mc-${{ env.VERSION }}-setup.exe
         name: ${{ env.NAME }} 
