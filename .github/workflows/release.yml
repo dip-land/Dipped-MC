@@ -31,5 +31,5 @@ jobs:
         name: ${{ env.NAME }} 
         tag_name: ${{ env.VERSION }} 
         generate_release_notes: true
-        make_latest: ${{ env.LATEST }}
-        prerelease: ${{ env.PRERELEASE }}
+        make_latest: "${{ env.LATEST }}".ToLower()
+        prerelease: "${{ env.PRERELEASE }}".ToLower()
