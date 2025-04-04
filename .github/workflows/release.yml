@@ -25,12 +25,11 @@ jobs:
             }
     - run: npm run build:win
     - name: Upload binaries to release
-      uses: svenstaro/upload-release-action@v2
+      uses: softprops/action-gh-release@v2
       with:
-        file: dist/dipped_mc-${{ env.VERSION }}-setup.exe
-        release_name: ${{ env.NAME }} 
-        tag: ${{ env.NAME }} 
-        overwrite: true
-        file_glob: true
+        files: dist/dipped_mc-${{ env.VERSION }}-setup.exe
+        name: ${{ env.NAME }} 
+        tag_name: ${{ env.VERSION }} 
+        generate_release_notes: true
         make_latest: ${{ env.LATEST }}
         prerelease: ${{ env.PRERELEASE }}
