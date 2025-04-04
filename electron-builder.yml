@@ -13,11 +13,8 @@ asarUnpack:
   - resources/**
 win:
   executableName: dipped_mc
-nsis:
-  artifactName: ${name}-${version}-setup.${ext}
-  shortcutName: ${productName}
-  uninstallDisplayName: ${productName}
-  createDesktopShortcut: always
+  target: ["squirrel"]
+  icon: "build/icon.ico"
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false

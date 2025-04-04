@@ -28,9 +28,10 @@ jobs:
     - name: Upload binaries to release
       uses: dip-land/action-gh-release@v2
       with:
-        files: dist/dipped_mc-${{ env.VERSION }}-setup.exe
+        files: dist/squirrel-windows/*
         name: ${{ env.NAME }} 
         tag_name: ${{ env.NAME }} 
         generate_release_notes: true
         make_latest: ${{ env.LATEST == 'True' }}
         prerelease: ${{ env.PRERELEASE == 'True' }}
+        draft: true
