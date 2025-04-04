@@ -25,11 +25,11 @@ jobs:
             }
     - run: npm run build:win
     - name: Upload binaries to release
-      uses: softprops/action-gh-release@v2
+      uses: dip-land/action-gh-release@v1
       with:
         files: dist/dipped_mc-${{ env.VERSION }}-setup.exe
         name: ${{ env.NAME }} 
         tag_name: ${{ env.NAME }} 
         generate_release_notes: true
-        make_latest: ("${{ env.LATEST }}".ToLower())
-        prerelease: ("${{ env.PRERELEASE }}".ToLower())
+        make_latest: ${{ env.LATEST }}
+        prerelease: ${{ env.PRERELEASE }}
