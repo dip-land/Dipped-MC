@@ -1,8 +1,7 @@
-import { autoUpdater } from 'electron';
 import { Event } from '../classes/event';
-import { validateSender } from '../index';
+import { autoUpdater, validateSender } from '../index';
 
 export default new Event(async (event) => {
-    if (!validateSender(event.senderFrame)) return null;
-    autoUpdater.quitAndInstall();
+  if (!validateSender(event.senderFrame)) return null;
+  autoUpdater.quitAndInstall();
 });

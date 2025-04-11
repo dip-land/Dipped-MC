@@ -6,15 +6,35 @@ const offline = status === -1 || status === 0;
 const loggedIn = user.status === 'valid';
 export default function TitleBar() {
   const ref = useRef<HTMLDivElement>(null);
+  const userRef = useRef<HTMLDivElement>(null);
+  const context = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!ref.current) return;
+    document.addEventListener('click', handleClick);
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
         document.getElementById('resizer')?.setAttribute('style', `max-width: ${entry.contentRect.width + 20}px;`);
       }
     });
     resizeObserver.observe(ref.current);
+    return () => {
+      document.removeEventListener('click', handleClick);
+    };
   }, [ref]);
+  function handleClick(e) {
+    if (!context.current || !ref.current || !userRef.current) return;
+    const ctx = context.current;
+    const target = e.target;
+    if (!ref.current.contains(target)) {
+      ctx.classList.add('hidden');
+    } else {
+      if ((userRef.current.contains(target) && ctx.classList.contains('hidden')) || ctx.contains(target)) {
+        ctx.classList.remove('hidden');
+      } else {
+        ctx.classList.add('hidden');
+      }
+    }
+  }
   return (
     <div id="end" ref={ref}>
       <div id="loginMode" className={'login' + (offline ? '' : ' hidden')}>
@@ -23,11 +43,11 @@ export default function TitleBar() {
       <button id="loginButton" className={'login' + (loggedIn ? ' hidden' : '')} onClick={window.dmc.login}>
         Login
       </button>
-      <div id="user" className={'user' + (loggedIn ? '' : ' hidden')}>
+      <div id="user" className={'user' + (loggedIn ? '' : ' hidden')} ref={userRef}>
         <img id="userAvatar" src={`https://mc-heads.net/avatar/${user.uuid}/100`}></img>
         <span id="username">{user.name}</span>
       </div>
-      <div className="popout hidden" id="nav_popout">
+      <div className="context hidden" ref={context}>
         <div id="logout" onClick={window.dmc.logout}>
           Logout
         </div>

@@ -27,7 +27,7 @@ body {
     z-index: 1000;
     display: flex;
     align-items: center;
-    font-size: 13.34px !important;
+    font-size: small !important;
 
     >img {
         width: 20px;
@@ -136,7 +136,7 @@ body {
         align-items: center;
     }
 
-    .popout {
+    .context {
         top: 34px;
         right: 0;
         text-align: center;
@@ -165,7 +165,7 @@ body {
 footer {
     color: var(--font-color-2);
     margin-bottom: 1rem;
-    font-size: 13.334px;
+    font-size: small;
     position: sticky;
 
     button {
@@ -519,6 +519,18 @@ hr {
     }
 }
 
+.packsUpdatedAt {
+    span {
+        color: var(--font-color-2) !important;
+        font-size: small;
+    }
+
+    button {
+        font-weight: bold !important;
+        margin-left: 2px;
+    }
+}
+
 #serverSection {
     margin-top: 1rem;
 
@@ -526,6 +538,7 @@ hr {
         display: flex;
         flex-direction: column;
         gap: 1rem;
+        margin: 0 auto 1rem;
 
         .server {
             display: flex;
@@ -649,7 +662,7 @@ hr {
     }
 }
 
-#settings {
+#settingsSection {
     aside {
         display: flex;
         flex-direction: column;
@@ -754,7 +767,7 @@ hr {
     position: fixed;
     inset: 0;
     backdrop-filter: blur(2px) brightness(0.9);
-    z-index: 100;
+    z-index: 1020;
     display: grid;
     align-items: center;
     justify-content: center;

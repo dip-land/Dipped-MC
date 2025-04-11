@@ -8,6 +8,7 @@
     "name": "Sebastian W",
     "email": "82669765+dip-land@users.noreply.github.com"
   },
+  "repository": "https://github.com/dip-land/Dipped-MC",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",
@@ -27,6 +28,7 @@
     "@electron-toolkit/utils": "^4.0.0",
     "axios": "^1.8.4",
     "decompress": "^4.2.1",
+    "electron-updater": "^6.6.2",
     "minecraft-launcher-core": "^3.18.2",
     "mkdirp": "^3.0.1",
     "msmc": "^5.0.5",

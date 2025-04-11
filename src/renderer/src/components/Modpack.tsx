@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Pack } from '../../../main/types';
 
-export default function Modpack({ pack, offline }: { pack: Pack<boolean>; offline: boolean }) {
+export default function Modpack({ pack, offline, reset }: { pack: Pack<boolean>; offline: boolean; reset: boolean }) {
   const [image, setImage] = useState('');
 
   async function fetchImage() {
@@ -12,7 +12,9 @@ export default function Modpack({ pack, offline }: { pack: Pack<boolean>; offlin
   const version = updatable ? `v.${pack.localVersion} ->` : offline ? `v.${pack.localVersion}` : `v.${pack.serverVersion}`;
   const newVersion = updatable ? `v.${pack.serverVersion}` : '';
   fetchImage();
-  return (
+  return reset ? (
+    <div />
+  ) : (
     <>
       <div id={pack.id} className={'modpack' + (pack.installed ? ' downloaded' : ' notDownloaded') + (updatable ? ' update' : '')}>
         <div className="modpackBackground" style={{ backgroundImage: `url("${image}")` }}></div>

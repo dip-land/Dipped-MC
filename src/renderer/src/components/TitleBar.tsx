@@ -2,15 +2,27 @@ import icon from '../assets/favicon_x256.png';
 import TitleBarEnd from './TitleBarEnd';
 
 export default function TitleBar() {
+  function switchMenu(menu: 'modpack' | 'server' | 'settings') {
+    document.getElementById('modpackSection')?.classList.add('hidden');
+    document.getElementById('serverSection')?.classList.add('hidden');
+    document.getElementById('settingsSection')?.classList.add('hidden');
+    document.getElementById(`${menu}Section`)?.classList.remove('hidden');
+  }
   return (
     <div id="titleBar">
       <img src={icon}></img>
       <div className="dragZone">Dipped MC</div>
       <div id="resizer" className="dragZone"></div>
       <div className="center">
-        <button id="openModpacks">Modpacks</button>
-        <button id="openServers">Servers</button>
-        <button id="openSettings">Settings</button>
+        <button id="openModpacks" onClick={() => switchMenu('modpack')}>
+          Modpacks
+        </button>
+        <button id="openServers" onClick={() => switchMenu('server')}>
+          Servers
+        </button>
+        <button id="openSettings" onClick={() => switchMenu('settings')}>
+          Settings
+        </button>
       </div>
       <div className="dragZone"></div>
       <TitleBarEnd></TitleBarEnd>

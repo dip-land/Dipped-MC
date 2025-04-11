@@ -1,4 +1,5 @@
-import { app, BrowserWindow, shell, ipcMain, autoUpdater, WebFrameMain } from 'electron';
+import { app, BrowserWindow, shell, ipcMain, WebFrameMain } from 'electron';
+import electronUpdater, { type AppUpdater } from 'electron-updater';
 import path, { join } from 'path';
 import fs from 'node:fs';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
@@ -9,11 +10,16 @@ import type { MclcUser } from 'msmc/types/types';
 import { Config, LocalPack, Pack, WebPack } from './types';
 import { Logger } from './classes/logger';
 
-export const apiServer = 'https://dipped.dev/api';
-const updateServer = 'https://launcher.dipped.dev';
-const feed = `${updateServer}/update/${process.platform}/${app.getVersion()}`;
+export function getAutoUpdater(): AppUpdater {
+  const { autoUpdater } = electronUpdater;
+  return autoUpdater;
+}
 
-autoUpdater.setFeedURL({ url: feed });
+export const apiServer = 'https://dipped.dev/api';
+
+export const autoUpdater = getAutoUpdater();
+autoUpdater.autoDownload = false;
+autoUpdater.autoInstallOnAppQuit = false;
 
 const defaultConfigPath = app.getPath('userData');
 const defaultPackPath = path.join(app.getPath('userData'), 'packs');
@@ -56,14 +62,10 @@ if (fs.existsSync(path.join(defaultConfigPath, '/config.json'))) {
     logger.error(error);
   }
 
-  fs.writeFile(
-    path.join(defaultConfigPath, '/config.json'),
-    JSON.stringify(defaultConfig, null, 2),
-    (err) => {
-      if (err) throw err;
-      logger.log('Config File Created.');
-    }
-  );
+  fs.writeFile(path.join(defaultConfigPath, '/config.json'), JSON.stringify(defaultConfig, null, 2), (err) => {
+    if (err) throw err;
+    logger.log('Config File Created.');
+  });
 }
 
 //check if key exists
@@ -110,7 +112,7 @@ function createWindow(): void {
     }
   });
 
-  if (app.isPackaged) mainWindow.removeMenu();
+  //if (app.isPackaged) mainWindow.removeMenu();
 
   const secondaryWindow = new BrowserWindow({
     title: `Dipped MC`,
@@ -231,12 +233,6 @@ app.whenReady().then(() => {
   ipcMain.handle('uninstall-pack', uninstallPackEvent.fn);
   ipcMain.handle('update-pack', updatePackEvent.fn);
 
-  autoUpdater.on('update-downloaded', () => {
-    window.webContents.executeJavaScript(
-      'document.getElementById("updateAppButton").classList.remove("hidden")'
-    );
-  });
-
   setTimeout(() => {
     if (app.isPackaged) autoUpdater.checkForUpdates();
   }, 1000 * 15);
@@ -254,6 +250,14 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => app.quit());
 
+autoUpdater.on('update-available', () => {
+  autoUpdater.downloadUpdate();
+});
+
+autoUpdater.on('update-downloaded', () => {
+  window.webContents.executeJavaScript('document.getElementById("updateAppButton").classList.remove("hidden")');
+});
+
 export function getApp() {
   return app;
 }
@@ -265,15 +269,11 @@ export function getConfig() {
   return config;
 }
 export function editConfig(newConfig: Config) {
-  fs.writeFile(
-    path.join(config.configPath, '/config.json'),
-    JSON.stringify(newConfig, null, 2),
-    (err) => {
-      if (err) throw err;
-      logger.log('Config File Edited.');
-      config = newConfig;
-    }
-  );
+  fs.writeFile(path.join(config.configPath, '/config.json'), JSON.stringify(newConfig, null, 2), (err) => {
+    if (err) throw err;
+    logger.log('Config File Edited.');
+    config = newConfig;
+  });
 }
 export function editPackConfig(id: string, data: { path?: string; ram?: number }) {
   const config = getConfig();
@@ -355,9 +355,7 @@ export async function fetchPacks() {
     });
   }
   try {
-    webPacks =
-      ((await axios(`${apiServer}/minecraft/servers`, { signal: newAbortSignal(10000) })).data
-        .data as Array<WebPack>) ?? [];
+    webPacks = ((await axios(`${apiServer}/minecraft/servers`, { signal: newAbortSignal(10000) })).data.data as Array<WebPack>) ?? [];
   } catch (error) {
     logger.log(error);
     return;

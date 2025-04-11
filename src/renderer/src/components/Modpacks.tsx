@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Modpack from './Modpack';
 import PackContext from './PackContext';
 
-const packs_ = await window.dmc.getPacks();
+let packs_ = await window.dmc.getPacks();
 const status = await window.dmc.getStatus();
 let config = await window.dmc.getConfig();
 async function editConfig(type: 'sort' | 'filter', value) {
@@ -14,11 +14,37 @@ async function editConfig(type: 'sort' | 'filter', value) {
 
 export default function Modpacks() {
   const [packs, setPacks] = useState(loadPacks());
-  function loadPacks(options?: { sort?; filter? }) {
+  useEffect(() => {
+    const dataNode = document.getElementById('data');
+    const observer = new MutationObserver((mutationList) => {
+      if (!dataNode) return;
+      mutationList.forEach(() => {
+        if (dataNode.getAttribute('data-reload-packs') === 'true') {
+          dataNode.setAttribute('data-reload-packs', 'false');
+          setTimeout(async () => {
+            packs_ = await window.dmc.getPacks();
+            setPacks(loadPacks({ reset: true }));
+            setTimeout(async () => setPacks(loadPacks()), 1);
+          });
+        }
+      });
+    });
+    if (dataNode) observer.observe(dataNode, { attributes: true });
+    setInterval(
+      () => {
+        if (!document.getElementById('modpackSection')?.classList.contains('hidden')) window.dmc.reloadPacks();
+      },
+      1000 * 60 * 15
+    );
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+  function loadPacks(options?: { sort?; filter?; reset?: boolean }) {
     return packs_
       .sort((a, b) => sort({ a, b }, options?.sort))
       .filter((p) => filter(p, options?.filter))
-      .map((pack) => <Modpack pack={pack} offline={status === -1 || status === 0}></Modpack>);
+      .map((pack) => <Modpack pack={pack} offline={status === -1 || status === 0} reset={options?.reset ?? false}></Modpack>);
   }
   async function handleChange(e) {
     const selectMenu = e.target;
@@ -77,6 +103,12 @@ export default function Modpacks() {
       </div>
       <div id="modpacks">{...packs}</div>
       <PackContext packs={packs_}></PackContext>
+      <div className="packsUpdatedAt">
+        <span>Last Updated At: {new Date().toLocaleString()}</span>
+        <button onClick={() => window.dmc.reloadPacks()} className="basicButton">
+          Refresh Packs
+        </button>
+      </div>
     </div>
   );
 }

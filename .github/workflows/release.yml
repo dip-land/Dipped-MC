@@ -20,15 +20,18 @@ jobs:
     - run: npm install
     - run: |
             if ("${{github.ref_name}}" -eq "dev") {
-              echo ("NAME=" + "v${{env.VERSION}}_" + ([DateTimeOffset]::UtcNow.ToUnixTimeSeconds())) >> $env:GITHUB_ENV
+              echo ("NAME=" + "${{env.VERSION}}_" + ([DateTimeOffset]::UtcNow.ToUnixTimeSeconds())) >> $env:GITHUB_ENV
             } elseif ("${{github.ref_name}}" -eq "master") {
-              echo ("NAME=" + "v${{env.VERSION}}") >> $env:GITHUB_ENV
+              echo ("NAME=" + "${{env.VERSION}}") >> $env:GITHUB_ENV
             }
     - run: npm run build:win
     - name: Upload binaries to release
       uses: dip-land/action-gh-release@v2
       with:
-        files: dist/squirrel-windows/*
+        files: |
+              dist/dipped_mc-${{ env.VERSION }}-setup.exe
+              dist/dipped_mc-${{ env.VERSION }}-setup.exe.blockmap
+              dist/latest.yml
         name: ${{ env.NAME }} 
         tag_name: ${{ env.NAME }} 
         generate_release_notes: true

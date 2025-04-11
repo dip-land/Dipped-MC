@@ -11,6 +11,7 @@ const api = {
   editConfig: (newConfig: Config) => ipcRenderer.invoke('edit-config', newConfig),
   editPackConfig: (id: string, data: { path?: string; ram?: number }) => ipcRenderer.invoke('edit-pack-config', id, data),
   fetchPacks: () => ipcRenderer.invoke('fetch-packs'),
+  functions: [{ name: '', function: null }],
   getConfig: () => ipcRenderer.invoke('get-config') as Promise<Config>,
   getInstallingPacks: () => ipcRenderer.invoke('get-installing-packs'),
   getPack: (id: string) => ipcRenderer.invoke('get-pack', id),
@@ -57,76 +58,15 @@ if (process.contextIsolated) {
 
 async function reloadPacks() {
   const status = (await ipcRenderer.invoke('get-status')) as -1 | 0 | 1;
-  const config = (await ipcRenderer.invoke('get-config')) as Config;
   const offline = status === 0 || status === -1;
-  const sort = config.sortAndFilters.modpackSort ?? 'new';
-  const filter = config.sortAndFilters.modpackFilter ?? 'all';
-  const packs = (await ipcRenderer.invoke('get-packs'))
-    .sort((a, b) => {
-      if (sort === 'installed' || sort === 'uninstalled') {
-        if (sort === 'installed') return a.installed ? -1 : 1;
-        if (sort === 'uninstalled') return a.installed ? 1 : -1;
-        return 0;
-      }
-      if (sort === 'new' || sort === 'old') {
-        const aTime = new Date(a.serverDates.start).getTime();
-        const bTime = new Date(b.serverDates.start).getTime();
-        if (aTime < bTime) return sort === 'new' ? 1 : -1;
-        if (aTime > bTime) return sort === 'old' ? 1 : -1;
-        return 0;
-      }
-      const valueA = a['name']?.toUpperCase();
-      const valueB = b['name']?.toUpperCase();
-      if (valueA < valueB) return sort === 'asc' ? -1 : 1;
-      if (valueA > valueB) return sort === 'asc' ? 1 : -1;
-      return 0;
-    })
-    .filter((pack) => {
-      if (filter === 'all') return true;
-      if (filter === 'installed') return pack.installed;
-      if (filter === 'uninstalled') return !pack.installed;
-    }) as Array<Pack<boolean>>;
-  const packsSection = document.getElementById('modpacks') as HTMLDivElement;
-  packsSection.innerHTML = '';
+  const dataNode = document.getElementById('data');
+  if (!dataNode) return;
   if (offline) {
     document.getElementById('offlineWarning')?.classList.remove('hidden');
     document.getElementById('loginMode')?.classList.remove('hidden');
     document.getElementById('loginButton')?.classList.add('hidden');
   }
-  for (const pack of packs) {
-    const updatable = !offline && pack.installed && pack.localVersion !== pack.serverVersion;
-    const version = updatable ? `v.${pack.localVersion} ->` : offline ? `v.${pack.localVersion}` : `v.${pack.serverVersion}`;
-    const newVersion = updatable ? `v.${pack.serverVersion}` : '';
-    const image = await ipcRenderer.invoke('load-icon', pack.id, status);
-    packsSection.innerHTML += `<div id="${pack.id}" data-id="${pack.id}" class="modpack ${pack.installed ? 'downloaded' : 'notDownloaded'} ${updatable ? 'update' : ''}">
-                  <div data-id="${pack.id}" class="modpackBackground" style="background-image: url(&quot;${image}&quot;)"></div>
-                  <div data-id="${pack.id}" class="modpackContent">
-                      <img class="modpackIcon" src="${image}" width="140px" height="140px" alt="Pack Icon">
-                      <span class="modpackName">${pack.name}</span>
-                  </div>
-                  <div data-id="${pack.id}" class="modpackButtons">
-                      <button class="playButton" onclick="window.dmc.playPack('${pack.id}')">Play</button>
-                      ${
-                        offline
-                          ? ''
-                          : `<button class="updateButton" onclick="window.dmc.preUpdate('${pack.id}')">Update Pack</button>
-                      <button class="installButton" onclick="window.dmc.preInstall('${pack.id}')">Install Pack</button>
-                      <button class="downloadWorldButton" onclick="window.dmc.downloadWorld('${pack.id}')">Download Archived World</button>`
-                      }
-                      <button class="packCtxMenuButton" onclick="const bb = this.getBoundingClientRect(); window.dmc.openPackCtxMenu({packID: '${
-                        pack.id
-                      }', posX:bb.left, posY:bb.bottom, offline:${offline}, pack: true}, this);">︙</button>
-                  </div>
-                  <div data-id="${pack.id}" class="info ${pack.installed && !updatable ? 'hidden' : ''}">
-                      <span>${!pack.installed ? 'Not Installed' : updatable ? 'Requires Update' : ''}</span>
-                  </div>
-                  <div data-id="${pack.id}" class="version">
-                      <span class="versionNumber">${version}</span>
-                      ${offline ? '' : `<span class="newVersionNumber">${newVersion}</span>`}
-                      <img class="modLoaderIcon" />
-                  </div>
-              </div>`;
-  }
+  dataNode.setAttribute('data-reload-packs', 'true');
 }
 
 function openSettingsToPack(id: string) {
@@ -180,8 +120,9 @@ async function preInstall(packID: string) {
 function setInstalling(packID: string) {
   const pack = document.getElementById(packID);
   if (!pack) return;
-  const button = pack.children[2].children[2] as HTMLButtonElement;
+  const button = [...pack.children[2].children].find((e) => e.classList.contains('installButton')) as HTMLButtonElement | undefined;
   const infoText = pack.children[3].children[0];
+  if (!button || !infoText) return;
   button.style.background = '#1e4d19';
   button.innerText = 'Installing';
   infoText.innerHTML = 'Installing';
@@ -222,8 +163,9 @@ async function preUninstall(packID: string) {
 function setUninstalling(packID: string) {
   const pack = document.getElementById(packID);
   if (!pack) return;
-  const button = pack.children[2].children[0] as HTMLButtonElement;
+  const button = [...pack.children[2].children].find((e) => e.classList.contains('playButton')) as HTMLButtonElement | undefined;
   const infoText = pack.children[3].children[0];
+  if (!button || !infoText) return;
   button.style.background = '#952f2f';
   button.innerText = 'Uninstalling';
   infoText.innerHTML = 'Uninstalling';
@@ -255,8 +197,9 @@ async function preUpdate(packID: string) {
 function setUpdating(packID: string) {
   const pack = document.getElementById(packID);
   if (!pack) return;
-  const button = pack.children[2].children[0] as HTMLButtonElement;
+  const button = [...pack.children[2].children].find((e) => e.classList.contains('playButton')) as HTMLButtonElement | undefined;
   const infoText = pack.children[3].children[0];
+  if (!button || !infoText) return;
   button.style.background = '#1e4d19';
   button.innerText = 'Updating';
   infoText.innerHTML = 'Updating';
