@@ -315,15 +315,14 @@ hr {
     }
 }
 
-#filter {
+.filter {
     padding: 1rem 0;
     display: flex;
     align-items: center;
     flex-direction: row;
 
     input,
-    select,
-    #uninstallPacks {
+    select {
         display: inline;
         background-color: var(--background-3);
         color: var(--font-color-1);
@@ -345,19 +344,9 @@ hr {
         padding: 8px 0px 8px 16px;
         border-right: 16px solid transparent;
     }
-
-    #uninstallPacks {
-        margin-left: auto;
-        margin-right: 0;
-    }
 }
 
-#filter input[type='submit'],
-#filter #reset {
-    align-self: flex-end;
-}
-
-#servers {
+#modpacks {
     margin: 0 auto 1rem;
     width: min(100%, 1340px);
     display: grid;
@@ -366,7 +355,7 @@ hr {
     box-sizing: border-box;
     text-shadow: 0.5px 0.5px 0.5px var(--shadow-color);
 
-    .server {
+    .modpack {
         position: relative;
         background-color: var(--background-4);
         border-radius: 6px;
@@ -381,7 +370,7 @@ hr {
             transform: translateY(-1px);
         }
 
-        .serverBackground {
+        .modpackBackground {
             background-repeat: no-repeat;
             background-size: cover;
             background-position: center;
@@ -390,7 +379,7 @@ hr {
             inset: -12px;
         }
 
-        .serverContent {
+        .modpackContent {
             display: flex;
             flex-direction: column;
             position: absolute;
@@ -400,7 +389,7 @@ hr {
             vertical-align: middle;
             inset: 0;
 
-            .serverIcon {
+            .modpackIcon {
                 display: flex;
                 border-radius: 50%;
                 width: 80px !important;
@@ -412,7 +401,7 @@ hr {
                 align-items: center;
             }
 
-            .serverName {
+            .modpackName {
                 font-weight: bold;
                 max-width: 100%;
                 text-wrap: nowrap;
@@ -422,7 +411,7 @@ hr {
             }
         }
 
-        .serverButtons {
+        .modpackButtons {
             display: none;
             flex-direction: row;
             gap: 0.3rem;
@@ -489,11 +478,11 @@ hr {
         &:hover,
         &.hover,
         &.activePack {
-            .serverName {
+            .modpackName {
                 display: none;
             }
 
-            .serverButtons {
+            .modpackButtons {
                 display: flex;
             }
         }
@@ -527,6 +516,136 @@ hr {
 
         &.update .newVersionNumber {
             color: var(--version-newVersion-color);
+        }
+    }
+}
+
+#serverSection {
+    margin-top: 1rem;
+
+    #servers {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+
+        .server {
+            display: flex;
+            flex-direction: row;
+            gap: 1rem;
+            background-color: var(--background-2);
+            padding: 1rem;
+            border-radius: 6px;
+            align-items: center;
+
+            h1,
+            h2,
+            h3,
+            h4,
+            h5 {
+                margin: 0;
+            }
+
+            .serverIcon {
+                max-width: 56px;
+                max-height: 56px;
+                min-width: 56px;
+                min-height: 56px;
+                border-radius: 5px;
+                overflow: hidden;
+            }
+
+            .serverInfoContainer {
+                display: flex;
+                flex-direction: column;
+                flex-grow: 1;
+
+                .serverInfo {
+                    background-color: var(--background-3);
+                    display: flex;
+                    flex-direction: row;
+                    border: 1px solid var(--border-color);
+                    border-radius: 6px;
+                    max-width: fit-content;
+                    flex-shrink: 1;
+                    gap: 0.5rem;
+                    align-items: center;
+                    padding: 1px 0.5rem;
+
+                    .serverStatusIndicator {
+                        width: 10px;
+                        height: 10px;
+                        border-radius: 50%;
+                        border: 1px solid var(--border-color);
+                        background-color: red;
+                    }
+
+                    .serverStatus {
+                        font-size: 1rem;
+                    }
+
+                    .playerCount {
+                        font-size: 0.9rem;
+                    }
+                }
+            }
+
+            .serverButtons {
+                display: flex;
+                gap: 0.5rem;
+                flex-direction: column;
+
+                button {
+                    font-size: 1rem;
+                    text-shadow: 0.5px 0.5px 0.5px var(--shadow-color);
+                    border-radius: 5px;
+                    padding: 0.5rem 1rem;
+                    box-shadow: 1px 1px 1px 1px var(--shadow-color);
+                    flex-grow: 1;
+                    min-width: 230px;
+
+                    &:disabled {
+                        background-color: var(--accent-2);
+                        color: var(--font-color-2);
+                        cursor: default;
+
+                        &:hover {
+                            transform: none;
+                            box-shadow: 1px 1px 1px 1px var(--shadow-color);
+                        }
+                    }
+
+                    &:hover {
+                        transform: translate(1px, 1px);
+                        box-shadow: none;
+                    }
+
+                    &.packCtxMenuButton {
+                        flex-grow: 0;
+                        font-weight: 900;
+                        font-size: 18px;
+                        line-height: 1rem;
+
+                    }
+                }
+            }
+
+            &.online {
+                .serverInfoContainer .serverInfo .serverStatusIndicator {
+                    background-color: var(--green);
+                }
+            }
+
+            &.offline {
+                .serverInfoContainer .serverInfo .serverStatusIndicator {
+                    background-color: var(--red);
+                }
+            }
+
+            &.archived {
+                .serverInfoContainer .serverInfo .serverStatusIndicator {
+                    background-color: var(--orange);
+                }
+            }
         }
     }
 }
@@ -850,7 +969,7 @@ hr {
 }
 
 @media screen and (max-width: 1050px) {
-    #servers {
+    #modpacks {
         grid-template-columns: 1fr 1fr;
     }
 }

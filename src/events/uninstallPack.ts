@@ -4,7 +4,7 @@ import { addUninstalling, editConfig, fetchPacks, getConfig, getPacks, getUninst
 import { existsSync, mkdirSync, rename } from 'fs';
 import { rmdir } from 'fs/promises';
 
-export default new Event(async (event, options: { packID: string; deleteSettings?: boolean; deleteWorlds?: boolean; offline: boolean }) => {
+export default new Event(async (event, options: { packID: string; deleteSettings?: boolean; deleteWorlds?: boolean }) => {
     if (!validateSender(event.senderFrame)) return null;
     const window = getWindows().main;
     const config = getConfig();
@@ -13,8 +13,8 @@ export default new Event(async (event, options: { packID: string; deleteSettings
     addUninstalling(options.packID);
     const packDir = config.packs.find((pack) => pack.id === options.packID)?.path;
     const pack = packs.find((pack) => pack.id === options.packID);
-    await window.webContents.executeJavaScript(`window.dmc.createNotification("${options.packID}_uninstall", { title: "Uninstalling", body: "${pack.name}"})`);
     if (!packDir || !pack) return false;
+    await window.webContents.executeJavaScript(`window.dmc.createNotification("${options.packID}_uninstall", { title: "Uninstalling", body: "${pack.name}"})`);
     if (!options.deleteSettings) {
         if (!existsSync(path.join(config.packPath, 'uninstalled', options.packID))) mkdirSync(path.join(config.packPath, 'uninstalled', options.packID), { recursive: true });
         rename(path.join(packDir, 'options.txt'), path.join(config.packPath, 'uninstalled', options.packID, 'options.txt'), (e) => {
@@ -35,8 +35,8 @@ export default new Event(async (event, options: { packID: string; deleteSettings
             shadowConfig.packs.splice(packIndex, 1);
             editConfig(shadowConfig);
             await fetchPacks();
-            window.webContents.executeJavaScript(`window.dmc.reloadPacks(${options.offline})`);
             removeUninstalling(pack.id);
+            window.webContents.executeJavaScript(`window.dmc.reloadPacks()`);
             window.webContents
                 .executeJavaScript(`window.dmc.updateNotification("${options.packID}_uninstall", { title: "Uninstall Successful", body: "${pack.name} Uninstalled"})`)
                 .then(() => {

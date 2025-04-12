@@ -17,18 +17,19 @@ contextBridge.exposeInMainWorld('dmc', {
     getInstallingPacks: () => ipcRenderer.invoke('get-installing-packs'),
     getPack: (id: string) => ipcRenderer.invoke('get-pack', id),
     getPacks: () => ipcRenderer.invoke('get-packs'),
+    getServers: () => ipcRenderer.invoke('get-servers'),
     getStatus: () => ipcRenderer.invoke('get-status'),
     getUninstallingPacks: () => ipcRenderer.invoke('get-uninstalling-packs'),
     getUser: () => ipcRenderer.invoke('get-user'),
     getVersions: () => ipcRenderer.invoke('get-versions'),
-    loadIcon: (id: string, status: { api: boolean; network: boolean }) => ipcRenderer.invoke('load-icon', id, status),
+    loadIcon: (id: string, status: -1 | 0 | 1) => ipcRenderer.invoke('load-icon', id, status),
     login: () => ipcRenderer.invoke('login'),
     logout: () => ipcRenderer.invoke('logout'),
     movePack: (id: string, path: string) => ipcRenderer.invoke('move-pack', id, path),
     openFolder: (path: string) => ipcRenderer.invoke('open-folder', path),
     openURL: (url: string) => ipcRenderer.invoke('open-url', url),
     pathJoin: (...args: string[]) => ipcRenderer.invoke('path-join', ...args),
-    playPack: (id: string) => ipcRenderer.invoke('play-pack', id),
+    playPack: (id: string, ip?: string) => ipcRenderer.invoke('play-pack', id, ip),
     reload: () => ipcRenderer.invoke('reload'),
     selectFolder: (type: 'pack') => ipcRenderer.invoke('dialog:openDirectory', type),
 
@@ -47,31 +48,55 @@ contextBridge.exposeInMainWorld('dmc', {
 });
 
 async function reloadPacks() {
-    const status = (await ipcRenderer.invoke('get-status')) as { api: boolean; network: boolean };
-    const offline = !status.api;
-    const packs = (await ipcRenderer.invoke('get-packs')) as Array<Pack<boolean>>;
-    const packsSection = document.getElementById('servers');
+    const status = (await ipcRenderer.invoke('get-status')) as -1 | 0 | 1;
+    const config = (await ipcRenderer.invoke('get-config')) as Config;
+    const offline = status === 0 || status === -1;
+    const sort = config.sortAndFilters.modpackSort ?? 'new';
+    const filter = config.sortAndFilters.modpackFilter ?? 'new';
+    const packs = (await ipcRenderer.invoke('get-packs'))
+        .sort((a, b) => {
+            if (sort === 'installed' || sort === 'uninstalled') {
+                if (sort === 'installed') return a.installed ? -1 : 1;
+                if (sort === 'uninstalled') return a.installed ? 1 : -1;
+                return 0;
+            }
+            if (sort === 'new' || sort === 'old') {
+                const aTime = new Date(a.serverDates.start).getTime();
+                const bTime = new Date(b.serverDates.start).getTime();
+                if (aTime < bTime) return sort === 'new' ? 1 : -1;
+                if (aTime > bTime) return sort === 'old' ? 1 : -1;
+                return 0;
+            }
+            const valueA = a['name']?.toUpperCase();
+            const valueB = b['name']?.toUpperCase();
+            if (valueA < valueB) return sort === 'asc' ? -1 : 1;
+            if (valueA > valueB) return sort === 'asc' ? 1 : -1;
+            return 0;
+        })
+        .filter((pack) => {
+            if (filter === 'all') return true;
+            if (filter === 'installed') return pack.installed;
+            if (filter === 'uninstalled') return !pack.installed;
+        }) as Array<Pack<boolean>>;
+    const packsSection = document.getElementById('modpacks') as HTMLDivElement;
     packsSection.innerHTML = '';
     if (offline) {
-        document.getElementById('offlineWarning').classList.toggle('hidden');
-        document.getElementById('loginMode').classList.remove('hidden');
-        document.getElementById('loginButton').classList.add('hidden');
+        document.getElementById('offlineWarning')?.classList.remove('hidden');
+        document.getElementById('loginMode')?.classList.remove('hidden');
+        document.getElementById('loginButton')?.classList.add('hidden');
     }
     for (const pack of packs) {
         const updatable = !offline && pack.installed && pack.localVersion !== pack.serverVersion;
-        const worldDownload = false;
         const version = updatable ? `v.${pack.localVersion} ->` : offline ? `v.${pack.localVersion}` : `v.${pack.serverVersion}`;
         const newVersion = updatable ? `v.${pack.serverVersion}` : '';
         const image = await ipcRenderer.invoke('load-icon', pack.id, status);
-        packsSection.innerHTML += `<div id="${pack.id}" data-id="${pack.id}" class="server ${pack.installed ? 'downloaded' : 'notDownloaded'} ${updatable ? 'update' : ''} ${
-            worldDownload ? 'world' : ''
-        }">
-                    <div data-id="${pack.id}" class="serverBackground" style="background-image: url(&quot;${image}&quot;)"></div>
-                    <div data-id="${pack.id}" class="serverContent">
-                        <img class="serverIcon" src="${image}" width="140px" height="140px" alt="Pack Icon">
-                        <span class="serverName">${pack.name}</span>
+        packsSection.innerHTML += `<div id="${pack.id}" data-id="${pack.id}" class="modpack ${pack.installed ? 'downloaded' : 'notDownloaded'} ${updatable ? 'update' : ''}">
+                    <div data-id="${pack.id}" class="modpackBackground" style="background-image: url(&quot;${image}&quot;)"></div>
+                    <div data-id="${pack.id}" class="modpackContent">
+                        <img class="modpackIcon" src="${image}" width="140px" height="140px" alt="Pack Icon">
+                        <span class="modpackName">${pack.name}</span>
                     </div>
-                    <div data-id="${pack.id}" class="serverButtons">
+                    <div data-id="${pack.id}" class="modpackButtons">
                         <button class="playButton" onclick="window.dmc.playPack('${pack.id}')">Play</button>
                         ${
                             offline
@@ -84,8 +109,8 @@ async function reloadPacks() {
                             pack.id
                         }', posX:bb.left, posY:bb.bottom, offline:${offline}, pack: true}, this);">︙</button>
                     </div>
-                    <div data-id="${pack.id}" class="info ${pack.installed && !updatable && !worldDownload ? 'hidden' : ''}">
-                        <span>${!pack.installed ? 'Not Installed' : updatable ? 'Requires Update' : worldDownload ? 'World Available' : ''}</span>
+                    <div data-id="${pack.id}" class="info ${pack.installed && !updatable ? 'hidden' : ''}">
+                        <span>${!pack.installed ? 'Not Installed' : updatable ? 'Requires Update' : ''}</span>
                     </div>
                     <div data-id="${pack.id}" class="version">
                         <span class="versionNumber">${version}</span>
@@ -95,7 +120,7 @@ async function reloadPacks() {
                 </div>`;
     }
 
-    const packElements = document.getElementsByClassName('server');
+    const packElements = document.getElementsByClassName('modpack');
     for (const element of packElements) {
         (element as HTMLDivElement).oncontextmenu = (event) =>
             openPackCtxMenu({ packID: (event.target as any).parentNode.getAttribute('data-id'), posX: event.pageX, posY: event.pageY, offline });
@@ -103,7 +128,7 @@ async function reloadPacks() {
 }
 
 function openSettingsToPack(id: string) {
-    document.getElementById('openSettings').click();
+    document.getElementById('openSettings')?.click();
     setTimeout(() => {
         window.location.href = `#${id}_Settings`;
     }, 250);
@@ -116,7 +141,7 @@ async function preInstall(packID: string) {
     const installingPacks: Array<string> = await ipcRenderer.invoke('get-installing-packs');
     if (installingPacks.includes(pack.id)) return;
     const installSettings = document.getElementById('installSettings');
-    installSettings.classList.remove('hidden');
+    installSettings?.classList.remove('hidden');
 
     const currentFolder = document.getElementById('installLocation') as HTMLInputElement;
     currentFolder.value = `${config.packPath}\\${pack.identifier}`;
@@ -138,16 +163,17 @@ async function preInstall(packID: string) {
         setInstalling(packID);
         config.packs.push({ id: packID, path: await ipcRenderer.invoke('path-join', currentFolder.value), ram: ram.valueAsNumber });
         ipcRenderer.invoke('install-pack', pack.id, config);
-        installSettings.classList.add('hidden');
+        installSettings?.classList.add('hidden');
     };
 
     cancelButton.onclick = () => {
-        installSettings.classList.add('hidden');
+        installSettings?.classList.add('hidden');
     };
 }
 
 function setInstalling(packID: string) {
     const pack = document.getElementById(packID);
+    if (!pack) return;
     const button = pack.children[2].children[2] as HTMLButtonElement;
     const infoText = pack.children[3].children[0];
     button.style.background = '#1e4d19';
@@ -156,14 +182,14 @@ function setInstalling(packID: string) {
     button.style.pointerEvents = 'none';
 }
 
-async function preUninstall(packID: string, offline: boolean) {
+async function preUninstall(packID: string) {
     const uninstallingPacks: Array<string> = await ipcRenderer.invoke('get-uninstalling-packs');
     if (uninstallingPacks.includes(packID)) return;
     const packElement = document.getElementById(packID);
     const uninstallConfirmation = document.getElementById('uninstallConfirmation');
-    uninstallConfirmation.classList.remove('hidden');
-    const span = uninstallConfirmation.children[0].children[1].children[0];
-    span.innerHTML = packElement.children[2].children[1].innerHTML;
+    uninstallConfirmation?.classList.remove('hidden');
+    const span = uninstallConfirmation?.children[0].children[1].children[0];
+    if (span) span.innerHTML = packElement?.children[2].children[1].innerHTML ?? '';
 
     const uninstallButton = document.getElementById('uninstallPack') as HTMLButtonElement;
     const cancelButton = document.getElementById('cancelPackUninstall') as HTMLButtonElement;
@@ -174,17 +200,18 @@ async function preUninstall(packID: string, offline: boolean) {
     deleteWorlds.checked = false;
     uninstallButton.onclick = () => {
         setUninstalling(packID);
-        ipcRenderer.invoke('uninstall-pack', { packID, deleteSettings: deleteSettings.checked, deleteWorlds: deleteWorlds.checked, offline });
-        uninstallConfirmation.classList.add('hidden');
+        ipcRenderer.invoke('uninstall-pack', { packID, deleteSettings: deleteSettings.checked, deleteWorlds: deleteWorlds.checked });
+        uninstallConfirmation?.classList.add('hidden');
     };
 
     cancelButton.onclick = () => {
-        uninstallConfirmation.classList.add('hidden');
+        uninstallConfirmation?.classList.add('hidden');
     };
 }
 
 function setUninstalling(packID: string) {
     const pack = document.getElementById(packID);
+    if (!pack) return;
     const button = pack.children[2].children[0] as HTMLButtonElement;
     const infoText = pack.children[3].children[0];
     button.style.background = '#952f2f';
@@ -198,25 +225,26 @@ async function preUpdate(packID: string) {
     if (updatingPacks.includes(packID)) return;
     const packElement = document.getElementById(packID);
     const updateConfirmation = document.getElementById('updateConfirmation');
-    updateConfirmation.classList.remove('hidden');
-    const span = updateConfirmation.children[0].children[1].children[0];
-    span.innerHTML = packElement.children[2].children[1].innerHTML;
+    updateConfirmation?.classList.remove('hidden');
+    const span = updateConfirmation?.children[0].children[1].children[0];
+    if (span) span.innerHTML = packElement?.children[2].children[1].innerHTML ?? '';
 
     const updateButton = document.getElementById('updatePack') as HTMLButtonElement;
     const cancelButton = document.getElementById('cancelPackUpdate') as HTMLButtonElement;
     updateButton.onclick = () => {
         setUpdating(packID);
         ipcRenderer.invoke('update-pack', packID);
-        updateConfirmation.classList.add('hidden');
+        updateConfirmation?.classList.add('hidden');
     };
 
     cancelButton.onclick = () => {
-        updateConfirmation.classList.add('hidden');
+        updateConfirmation?.classList.add('hidden');
     };
 }
 
 function setUpdating(packID: string) {
     const pack = document.getElementById(packID);
+    if (!pack) return;
     const button = pack.children[2].children[0] as HTMLButtonElement;
     const infoText = pack.children[3].children[0];
     button.style.background = '#1e4d19';
@@ -227,19 +255,19 @@ function setUpdating(packID: string) {
 }
 
 function createNotification(id: string, data: { title: string; body: string; progress?: number }) {
-    const notificationBar = document.getElementById('notifications');
+    const notificationBar = document.getElementById('notifications') as HTMLElement;
     let progress = +(data.progress ? data.progress : 0);
     if (progress >= 100) progress = 100;
     if (progress <= 0) progress = 0;
     notificationBar.innerHTML += `
         <div class="notification" id="notification_${id}">
                 <div class="notificationText">
-                    <h2>${data.title}</h2>
-                    <h3>${data.body}</h3>
+                    <h2 id="notification_${id}_title">${data.title}</h2>
+                    <h3 id="notification_${id}_body">${data.body}</h3>
                 </div>
                 ${
                     typeof data.progress === 'number'
-                        ? `<div class="notificationProgress">
+                        ? `<div class="notificationProgress" id="notification_${id}_progress">
                     <div class="notificationPercent">${progress}%</div>
                     <div role="progressbar" aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="100" style="--value: ${progress}"></div>
                 </div>`
@@ -249,34 +277,25 @@ function createNotification(id: string, data: { title: string; body: string; pro
         `;
 
     setTimeout(() => {
-        document.getElementById(`notification_${id}`).classList.add('fadeIn');
+        document.getElementById(`notification_${id}`)?.classList.add('fadeIn');
     }, 10);
 }
 
 function updateNotification(id: string, data: { title?: string; body?: string; progress?: number }) {
-    const notification = document.getElementById(`notification_${id}`);
-    if (!notification) return;
-    const notificationTitle = notification.children[0].children[0].innerHTML;
-    const notificationBody = notification.children[0].children[1].innerHTML;
-    const notificationProgress = notification.children[1]?.children[1].ariaValueNow;
-    let progress = +(data.progress ? data.progress : notificationProgress);
-    if (progress >= 100) progress = 100;
-    if (progress <= 0) progress = 0;
-    notification.innerHTML = `
-                <div class="notificationText">
-                    <h2>${data.title ? data.title : notificationTitle}</h2>
-                    <h3>${data.body ? data.body : notificationBody}</h3>
-                </div>
-                ${
-                    typeof data.progress === 'number'
-                        ? `<div class="notificationProgress">
-                    <div class="notificationPercent">${Math.floor(progress)}%</div>
-                    <div role="progressbar" aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="100" style="--value: ${progress}"></div>
-                </div>`
-                        : ''
-                }
-                
-        `;
+    const notificationTitle = document.getElementById(`notification_${id}_title`);
+    const notificationBody = document.getElementById(`notification_${id}_body`);
+    const notificationProgress = document.getElementById(`notification_${id}_progress`);
+    if (!notificationTitle || !notificationBody) return;
+    notificationTitle.innerText = data.title ? data.title : notificationTitle.innerText;
+    notificationBody.innerText = data.body ? data.body : notificationBody.innerText;
+    if (notificationProgress) {
+        let progress = +(data.progress ? data.progress : notificationProgress.children[1]?.getAttribute('aria-valuenow') ?? 0);
+        if (progress >= 100) progress = 100;
+        if (progress <= 0 || !progress) progress = 0;
+        notificationProgress.children[0].innerHTML = `${Math.floor(progress)}%`;
+        notificationProgress.children[1].setAttribute('aria-valuenow', `${progress}`);
+        notificationProgress.children[1].setAttribute('style', `--value: ${progress}`);
+    }
 }
 
 function deleteNotification(id: string) {
@@ -284,12 +303,12 @@ function deleteNotification(id: string) {
     if (!notification) return;
     setTimeout(() => {
         notification.classList.remove('fadeIn');
-        setTimeout(() => notification.remove(), 500);
+        setTimeout(() => notification.remove(), 240);
     }, 3000);
 }
 
 async function openPackCtxMenu(options: { packID: string; posX: number; posY: number; offline: boolean; pack?: boolean }, element?: HTMLButtonElement) {
-    const contextMenu = document.getElementById('context');
+    const contextMenu = document.getElementById('context') as HTMLElement;
     const elements = document.getElementsByClassName('activePack');
     for (const element of elements) {
         element.classList.remove('activePack');
@@ -308,7 +327,7 @@ async function openPackCtxMenu(options: { packID: string; posX: number; posY: nu
 
     contextMenu.classList.add('hidden');
     const packElement = document.getElementById(options.packID);
-    packElement.classList.add('activePack');
+    packElement?.classList.add('activePack');
     const pack = packs.find((pack: Pack<boolean>) => pack.id === options.packID);
     contextMenu.classList.add('invisible');
     contextMenu.classList.remove('hidden');
@@ -320,16 +339,15 @@ async function openPackCtxMenu(options: { packID: string; posX: number; posY: nu
     const updateButton = contextMenu.children[1];
     const installButton = contextMenu.children[2];
     const uninstallButton = contextMenu.children[3];
-    const downloadWorldButton = contextMenu.children[4];
-    const firstHR = contextMenu.children[5];
-    const openFolderButton = contextMenu.children[6];
-    const settingsButton = contextMenu.children[7];
-    const secondHR = contextMenu.children[8];
-    const websiteButton = contextMenu.children[9];
-    const curseforgeButton = contextMenu.children[10];
-    const modrinthButton = contextMenu.children[11];
-    if (packElement.classList.contains('downloaded')) {
-        const packDir = new URL(((await ipcRenderer.invoke('get-config')) as Config).packs.find((pack) => pack.id === options.packID).path);
+    const firstHR = contextMenu.children[4];
+    const openFolderButton = contextMenu.children[5];
+    const settingsButton = contextMenu.children[6];
+    const secondHR = contextMenu.children[7];
+    const websiteButton = contextMenu.children[8];
+    const curseforgeButton = contextMenu.children[9];
+    const modrinthButton = contextMenu.children[10];
+    if (packElement?.classList.contains('downloaded')) {
+        const packDir = new URL(((await ipcRenderer.invoke('get-config')) as Config).packs.find((pack) => pack.id === options.packID)?.path ?? '');
         playButton.classList.remove('hidden');
         playButton.setAttribute('onclick', `window.dmc.playPack('${options.packID}')`);
         if (packElement.classList.contains('update')) {
@@ -337,31 +355,27 @@ async function openPackCtxMenu(options: { packID: string; posX: number; posY: nu
             updateButton.setAttribute('onclick', `window.dmc.preUpdate('${options.packID}')`);
         }
         uninstallButton.classList.remove('hidden');
-        uninstallButton.setAttribute('onclick', `window.dmc.preUninstall('${options.packID}', ${options.offline})`);
-        if (packElement.classList.contains('world')) {
-            downloadWorldButton.classList.remove('hidden');
-            downloadWorldButton.setAttribute('onclick', `window.dmc.downloadWorld('${options.packID}')`);
-        }
+        uninstallButton.setAttribute('onclick', `window.dmc.preUninstall('${options.packID}')`);
         firstHR.classList.remove('hidden');
         openFolderButton.classList.remove('hidden');
         openFolderButton.setAttribute('onclick', `window.dmc.openFolder('${packDir}')`);
         settingsButton.classList.remove('hidden');
         settingsButton.setAttribute('onclick', `window.dmc.openSettingsToPack('${options.packID}')`);
     }
-    if (packElement.classList.contains('notDownloaded')) {
+    if (packElement?.classList.contains('notDownloaded')) {
         installButton.classList.remove('hidden');
         installButton.setAttribute('onclick', `window.dmc.preInstall('${options.packID}')`);
     }
     if (!options.offline) {
         secondHR.classList.remove('hidden');
         websiteButton.classList.remove('hidden');
-        websiteButton.setAttribute('onclick', `window.dmc.openURL('https://dipped.dev/minecraft/${pack.identifier}')`);
+        websiteButton.setAttribute('onclick', `window.dmc.openURL("https://dipped.dev/minecraft/${pack.identifier}")`);
         if (pack.link.type === 'curseforge') {
             curseforgeButton.classList.remove('hidden');
-            curseforgeButton.setAttribute('onclick', `window.dmc.openURL('${pack.link.url}')`);
+            curseforgeButton.setAttribute('onclick', `window.dmc.openURL("${pack.link.url}")`);
         } else {
             modrinthButton.classList.remove('hidden');
-            modrinthButton.setAttribute('onclick', `window.dmc.openURL('${pack.link.url}')`);
+            modrinthButton.setAttribute('onclick', `window.dmc.openURL("${pack.link.url}")`);
         }
     }
 

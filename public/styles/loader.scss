@@ -1,0 +1,55 @@
+.loaderContainer {
+    display: grid;
+    grid-column: span 3;
+    grid-row: span 3;
+    margin-bottom: 4rem;
+
+    img {
+        margin: auto;
+        margin-top: calc(3.5rem + 15px);
+        grid-row: 1;
+        grid-column: 1;
+        height: 150px;
+        width: 150px;
+    }
+
+    .loader {
+        margin: auto;
+        margin-top: 3.5rem;
+        grid-row: 1;
+        grid-column: 1;
+        width: 180px;
+        aspect-ratio: 1;
+        display: grid;
+
+        &::before,
+        &::after {
+            content: '';
+            grid-area: 1/1;
+            --c: no-repeat radial-gradient(farthest-side, #fff 92%, #0000);
+            background: var(--c) 50% 0, var(--c) 50% 100%, var(--c) 100% 50%, var(--c) 0 50%;
+            background-size: 12px 12px;
+            animation: rotateAnimation 1s infinite;
+
+            &::before {
+                margin: 4px;
+                filter: hue-rotate(45deg);
+                background-size: 8px 8px;
+                animation-timing-function: linear;
+            }
+        }
+    }
+
+    @keyframes rotateAnimation {
+        100% {
+            transform: rotate(0.5turn);
+        }
+    }
+
+    #infoText {
+        color: white;
+        font-size: 2rem;
+        text-align: center;
+        font-weight: bold;
+    }
+}

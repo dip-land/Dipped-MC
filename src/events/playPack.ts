@@ -1,6 +1,6 @@
 import { Event } from '../classes/event';
 import { authManager, editKey, getConfig, getKey, getPacks, getUpdating, getWindows, logger, validateSender } from '../index';
-import { Client, Authenticator, IUser } from 'minecraft-launcher-core';
+import { Client, Authenticator, IUser, ILauncherOptions } from 'minecraft-launcher-core';
 import { fabric, forge } from '../tomate-loaders/index';
 // eslint-disable-next-line import/no-unresolved
 import { tokenUtils } from 'msmc';
@@ -9,7 +9,7 @@ import type { MclcUser } from 'msmc/types/types';
 
 const launcher = new Client();
 
-export default new Event(async (event, id) => {
+export default new Event(async (event, id: string, ip?: string) => {
     if (!validateSender(event.senderFrame)) return null;
     const config = getConfig();
     const key = getKey();
@@ -18,7 +18,7 @@ export default new Event(async (event, id) => {
     const pack = (await getPacks()).find((p) => p.id === id);
     const packConfig = config.packs.find((p) => p.id === id);
     const updating = getUpdating();
-    if (!pack || updating.includes(pack.id)) return false;
+    if (!pack || updating.includes(pack.id) || !packConfig) return false;
     logger.log(`Launching Pack ${pack.name} ${pack.launcher}-${pack.launcherVersion}`);
     window.hide();
     loadingWindow.webContents.executeJavaScript('document.getElementById("infoText").innerText = "Starting Minecraft"');
@@ -27,16 +27,16 @@ export default new Event(async (event, id) => {
     const launchConfig =
         pack.launcher === 'forge'
             ? await forge.getMCLCLaunchConfig({
-                  gameVersion: pack.gameVersion,
+                  gameVersion: pack.gameVersion as string,
                   rootPath: packConfig.path,
-                  launcherVersion: pack.launcherVersion,
+                  launcherVersion: pack.launcherVersion as string,
               })
             : await fabric.getMCLCLaunchConfig({
-                  gameVersion: pack.gameVersion,
+                  gameVersion: pack.gameVersion as string,
                   rootPath: packConfig.path,
-                  launcherVersion: pack.launcherVersion,
+                  launcherVersion: pack.launcherVersion as string,
               });
-    launcher.launch({
+    const launchOptions: ILauncherOptions = {
         ...launchConfig,
         authorization: (key as IUser) ?? Authenticator.getAuth('offline'),
         memory: {
@@ -44,7 +44,13 @@ export default new Event(async (event, id) => {
             max: packConfig.ram * 1000,
         },
         javaPath: 'javaw',
-    });
+    };
+    if (ip)
+        launchOptions['quickPlay'] = {
+            type: 'multiplayer',
+            identifier: ip,
+        };
+    launcher.launch(launchOptions);
 
     let flag = false;
     launcher.on('data', () => {

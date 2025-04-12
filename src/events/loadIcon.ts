@@ -3,9 +3,9 @@ import { Event } from '../classes/event';
 import { readFileSync } from 'fs';
 import { getConfig, validateSender } from '../index';
 
-export default new Event(async (event, id, status: { api: boolean; network: boolean }) => {
+export default new Event(async (event, id, status: -1 | 0 | 1) => {
     if (!validateSender(event.senderFrame)) return null;
-    if (status.api) return 'https://dipped.dev/api/minecraft/icons/' + id;
+    if (status === 1) return 'https://dipped.dev/api/minecraft/icons/' + id;
     const pack = getConfig().packs.find((p) => p.id === id);
     if (!pack) return false;
     try {

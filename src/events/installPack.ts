@@ -17,6 +17,7 @@ export default new Event(async (event, id, config) => {
     await fetchPacks();
     const packs = await getPacks();
     const pack = packs.find((p: Pack<boolean>) => p.id === id);
+    if (!pack) return;
     await window.webContents.executeJavaScript(`window.dmc.createNotification("${id}", { title: "Downloading", body: "${pack.name}", progress: 0})`);
     const controller = new AbortController();
     axios

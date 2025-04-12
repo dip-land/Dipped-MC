@@ -1,8 +1,16 @@
 window.onload = async () => {
-    let offline = !(await window.dmc.getStatus()).api;
+    const apiStatus = await window.dmc.getStatus();
+    const offline = apiStatus === 0 || apiStatus === -1;
 
     window.dmc.reloadPacks();
     getVersions();
+    if (offline) document.getElementById('openServers').remove();
+    const offlineText = document.getElementById('offlineText');
+    if (apiStatus === 0) {
+        offlineText.innerHTML = `It appears <button onclick="window.dmc.openURL('https://dipped.dev/')">https://dipped.dev</button> is currently down.`;
+    } else if (apiStatus === -1) {
+        offlineText.innerHTML = `It appears you aren't connected to internet.`;
+    }
 
     const user = await window.dmc.getUser();
     const container = document.getElementById('user');
@@ -33,7 +41,7 @@ window.onload = async () => {
             window.dmc.logout();
             window.location.reload();
         });
-    } else if (user.status === 'offline') window.dmc.reloadPacks();
+    }
 
     const contextMenu = document.getElementById('context');
 
@@ -58,6 +66,19 @@ window.onload = async () => {
     });
 
     document.getElementById('logsButton').setAttribute('onclick', `window.dmc.openFolder("${(await window.dmc.getConfig()).configPath.replaceAll('\\', '/')}/logs")`);
+
+    document.getElementById('modpacksSort').addEventListener('change', async (event) => {
+        const config = await window.dmc.getConfig();
+        config.sortAndFilters.modpackSort = event.target.value;
+        await window.dmc.editConfig(config);
+        await window.dmc.reloadPacks();
+    });
+    document.getElementById('modpacksFilter').addEventListener('change', async (event) => {
+        const config = await window.dmc.getConfig();
+        config.sortAndFilters.modpackFilter = event.target.value;
+        await window.dmc.editConfig(config);
+        await window.dmc.reloadPacks();
+    });
 
     setInterval(() => {
         window.dmc.fetchPacks();

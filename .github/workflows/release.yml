@@ -1,24 +1,37 @@
 name: Run build and create release
+# Test Command: act -P windows-latest=-self-hosted
 on:
   push:
     branches:
     - master
+    - dev
 jobs:
   run:
     runs-on: windows-latest
     steps:
+    - run: echo ("LATEST=" + ("${{github.ref_name}}" -eq "master")) >> $env:GITHUB_ENV
+    - run: echo ("PRERELEASE=" + ("${{github.ref_name}}" -eq "dev")) >> $env:GITHUB_ENV
     - uses: actions/checkout@v4
     - name: Setup Node.js environment
       uses: actions/setup-node@v4.3.0
       with:
           node-version: '23.9.0'
-    - run: npm install
     - run: echo ("VERSION=" + (node -p "require('./package.json').version")) >> $env:GITHUB_ENV
-    - run: npm run make
+    - run: npm install
+    - run: |
+            if ("${{github.ref_name}}" -eq "dev") {
+              echo ("NAME=" + "v${{env.VERSION}}_" + ([DateTimeOffset]::UtcNow.ToUnixTimeSeconds())) >> $env:GITHUB_ENV
+            } elseif ("${{github.ref_name}}" -eq "master") {
+              echo ("NAME=" + "v${{env.VERSION}}") >> $env:GITHUB_ENV
+            }
+    - run: npm run build:win
     - name: Upload binaries to release
-      uses: svenstaro/upload-release-action@v2
+      uses: dip-land/action-gh-release@v2
       with:
-        file: out/make/squirrel.windows/x64/*
-        tag: v${{ env.VERSION }}
-        overwrite: true
-        file_glob: true
+        files: out/make/squirrel.windows/x64/*
+        name: ${{ env.NAME }} 
+        tag_name: ${{ env.NAME }} 
+        generate_release_notes: true
+        make_latest: ${{ env.LATEST == 'True' }}
+        prerelease: ${{ env.PRERELEASE == 'True' }}
+        draft: true

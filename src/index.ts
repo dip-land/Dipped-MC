@@ -28,6 +28,10 @@ const defaultConfig: Config = {
     packPath: defaultPackPath,
     theme: 'default',
     ram: Math.floor(os.totalmem() / 2 / 1e6 > 12000 ? 12000 : os.totalmem() / 2 / 1e6) / 1000,
+    sortAndFilters: {
+        modpackSort: 'new',
+        modpackFilter: 'all',
+    },
     packs: [],
 };
 let config = defaultConfig;
@@ -70,7 +74,7 @@ if (fs.existsSync(path.join(defaultConfigPath, '/k._dmc'))) {
         key = JSON.parse(data.toString());
         if (Object.prototype.hasOwnProperty.call(key, 'access_token')) {
             const oldKey = await tokenUtils.fromMclcToken(authManager, key as MclcUser);
-            const newKey = await oldKey.refresh(true);
+            const newKey = await oldKey!.refresh(true);
             editKey(newKey.mclc(true));
         }
     });
@@ -176,6 +180,7 @@ import getConfigEvent from './events/getConfig';
 import getInstallingPacksEvent from './events/getInstallingPacks';
 import getPackEvent from './events/getPack';
 import getPacksEvent from './events/getPacks';
+import getServersEvent from './events/getServers';
 import getStatusEvent from './events/getStatus';
 import getUninstallingPacksEvent from './events/getUninstallingPacks';
 import getUpdatingPacksEvent from './events/getUpdatingPacks';
@@ -210,6 +215,7 @@ app.on('ready', async () => {
     ipcMain.handle('get-installing-packs', getInstallingPacksEvent.fn);
     ipcMain.handle('get-pack', getPackEvent.fn);
     ipcMain.handle('get-packs', getPacksEvent.fn);
+    ipcMain.handle('get-servers', getServersEvent.fn);
     ipcMain.handle('get-status', getStatusEvent.fn);
     ipcMain.handle('get-uninstalling-packs', getUninstallingPacksEvent.fn);
     ipcMain.handle('get-updating-packs', getUpdatingPacksEvent.fn);
@@ -361,6 +367,7 @@ export async function getPacks() {
             localVersion: undefined,
             status: pack.status,
             online: pack.online,
+            serverDates: pack.serverDates,
             link: pack.link,
             installed: false,
             gameVersion: undefined,
@@ -381,12 +388,13 @@ export async function getPacks() {
                 localVersion: pack.version,
                 status: undefined,
                 online: false,
+                serverDates: { start: undefined, end: undefined },
                 link: { type: undefined, url: undefined },
                 installed: true,
                 gameVersion: pack.gameVersion,
                 launcher: pack.launcher,
                 launcherVersion: pack.launcherVersion,
-                local: getConfig().packs.find((p) => p.id === pack.id),
+                local: getConfig().packs.find((p) => p.id === pack.id) as { id: string; path: string; ram: number },
             });
         } else {
             target.localVersion = pack.version;
@@ -402,7 +410,8 @@ export async function getPacks() {
     return _packs;
 }
 
-export function validateSender(frame: WebFrameMain) {
+export function validateSender(frame: WebFrameMain | null) {
+    if (!frame) return false;
     const url = new URL(frame.url);
     if (MAIN_WINDOW_VITE_DEV_SERVER_URL) return true;
     if (url.protocol === 'file:') return true;

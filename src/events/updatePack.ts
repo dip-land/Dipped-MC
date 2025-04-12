@@ -14,7 +14,7 @@ export default new Event(async (event, id) => {
     await fetchPacks();
     const packs = await getPacks();
     const pack = packs.find((p: Pack<boolean>) => p.id === id);
-    if (!pack.localVersion || pack.localVersion === pack.serverVersion) return;
+    if (!pack || !pack.localVersion || pack.localVersion === pack.serverVersion) return;
     addUpdating(pack.id);
     const window = getWindows().main;
     window.webContents.executeJavaScript(`window.dmc.createNotification("${id}_update", { title: "Updating", body: "${pack.name}", progress: 0})`);
@@ -32,7 +32,7 @@ export default new Event(async (event, id) => {
         .then((res) => {
             window.setProgressBar(0.5);
             window.webContents.executeJavaScript(`window.dmc.updateNotification("${id}_update", { progress: 50})`);
-            updatePack(window, pack, res.data);
+            updatePack(window, pack as Pack<true>, res.data);
             controller.abort();
         })
         .catch(() => {
@@ -42,7 +42,7 @@ export default new Event(async (event, id) => {
         });
 });
 
-async function updatePack(window: Electron.BrowserWindow, pack: Pack<boolean>, data: string) {
+async function updatePack(window: Electron.BrowserWindow, pack: Pack<true>, data: string) {
     const packPath = pack.local.path;
     const updateFilePath = path.join(packPath, 'update.zip');
     try {
@@ -78,7 +78,7 @@ async function updatePack(window: Electron.BrowserWindow, pack: Pack<boolean>, d
 async function unzip(zipPath: string, unzipToDir: string, packID: string) {
     const window = getWindows().main;
     const packs = await getPacks();
-    const pack = packs.find((p: Pack<boolean>) => p.id === packID);
+    const pack = packs.find((p) => p.id === packID) as Pack<true>;
     return new Promise<void>((resolve, reject) => {
         try {
             mkdirp.sync(unzipToDir);
@@ -90,7 +90,7 @@ async function unzip(zipPath: string, unzipToDir: string, packID: string) {
                     const progress = zipFile.entriesRead / zipFile.entryCount / 2 + 0.5;
                     window.setProgressBar(progress);
                     window.webContents.executeJavaScript(`window.dmc.updateNotification("${packID}_update", { title: "Updating", progress: ${progress * 100}})`);
-                    const chunks = [];
+                    const chunks: Array<Buffer<ArrayBuffer>> = [];
                     if (/\/$/.test(entry.fileName)) {
                         zipFile.readEntry();
                     } else {

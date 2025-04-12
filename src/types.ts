@@ -4,6 +4,10 @@ export interface Config {
     packPath: string;
     theme: string;
     ram: number;
+    sortAndFilters: {
+        modpackSort: 'installed' | 'uninstalled' | 'new' | 'old' | 'asc' | 'desc';
+        modpackFilter: 'all' | 'installed' | 'uninstalled';
+    };
     packs: Array<{ id: string; path: string; ram: number }>;
 }
 
@@ -14,6 +18,7 @@ export interface WebPack {
     version: string;
     name: string;
     identifier: string;
+    serverDates: { start: string; end: string };
     link: { type: 'curseforge' | 'modrinth'; url: string };
 }
 
@@ -37,6 +42,7 @@ export type Pack<installed> = installed extends false
           localVersion: string | undefined;
           status: string;
           online: boolean;
+          serverDates: { start: string; end: string };
           link: { type: 'curseforge' | 'modrinth'; url: string };
           installed: boolean;
           gameVersion: string | undefined;
@@ -52,6 +58,7 @@ export type Pack<installed> = installed extends false
           localVersion: string;
           status: string | undefined;
           online: boolean;
+          serverDates: { start: string | undefined; end: string | undefined };
           link: { type: 'curseforge' | 'modrinth' | undefined; url: string | undefined };
           installed: boolean;
           gameVersion: string;
@@ -59,6 +66,17 @@ export type Pack<installed> = installed extends false
           launcherVersion: string;
           local: { id: string; path: string; ram: number };
       };
+
+export interface Server {
+    id: string;
+    status: 'archived' | 'current';
+    online: boolean;
+    ip: string | undefined;
+    name: string;
+    identifier: string;
+    players: number;
+    download: boolean;
+}
 declare global {
     interface Window {
         dmc: {
@@ -75,17 +93,18 @@ declare global {
             getInstallingPacks: () => Promise<Array<string>>;
             getPack: (id: string) => Promise<Pack<boolean>>;
             getPacks: () => Promise<Array<Pack<boolean>>>;
-            getStatus: () => Promise<{ api: boolean; network: boolean }>;
+            getServers: () => Promise<Array<Server>>;
+            getStatus: () => Promise<-1 | 0 | 1>;
             getUninstallingPacks: () => Promise<Array<string>>;
             getUser: () => Promise<void>;
-            loadIcon: (id: string, status: { api: boolean; network: boolean }) => Promise<string>;
+            loadIcon: (id: string, status: -1 | 0 | 1) => Promise<string>;
             login: () => Promise<void>;
             logout: () => Promise<void>;
             movePack: (id: string, path: string) => Promise<void>;
             openFolder: (path: string) => Promise<true>;
             openURL: (url: string) => Promise<true>;
             pathJoin: (...args: string[]) => Promise<string>;
-            playPack: (id: string) => Promise<void>;
+            playPack: (id: string, ip?: string) => Promise<void>;
             reload: () => Promise<void>;
             selectFolder: (type: 'pack') => Promise<string>;
 
